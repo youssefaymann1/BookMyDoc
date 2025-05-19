@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Edit Medical Record{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">
+        Edit Medical Record
+      </h3>
+      <p class="mt-1 max-w-2xl text-sm text-gray-500">
+        Update the medical record details
+      </p>
+    </div>
+
+    <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+      <form method="POST" class="space-y-6">
+        <div>
+          <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+          <input type="text" name="title" id="title" value="{{ record.title }}" required
+                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+
+        {% if user.role == 'doctor' %}
+        <div>
+          <label for="type" class="block text-sm font-medium text-gray-700">Type</label>
+          <select name="type" id="type" required
+                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <option value="diagnosis" {% if record.type == 'diagnosis' %}selected{% endif %}>Diagnosis</option>
+            <option value="prescription" {% if record.type == 'prescription' %}selected{% endif %}>Prescription</option>
+            <option value="test" {% if record.type == 'test' %}selected{% endif %}>Test Result</option>
+            <option value="note" {% if record.type == 'note' %}selected{% endif %}>Note</option>
+          </select>
+        </div>
+        {% else %}
+        <input type="hidden" name="type" value="{{ record.type }}">
+        {% endif %}
+
+        <div>
+          <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+          <textarea name="description" id="description" rows="4" required
+                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">{{ record.description }}</textarea>
+        </div>
+
+        {% if user.role == 'doctor' %}
+        <div>
+          <label for="prescription" class="block text-sm font-medium text-gray-700">Prescription (if applicable)</label>
+          <textarea name="prescription" id="prescription" rows="3"
+                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">{{ record.prescription }}</textarea>
+        </div>
+        {% else %}
+        <input type="hidden" name="prescription" value="{{ record.prescription }}">
+        {% endif %}
+
+        <div class="flex justify-end space-x-3">
+          {% if user.role == 'patient' %}
+          <a href="{{ url_for('views.view_profile') }}"
+             class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            Cancel
+          </a>
+          {% else %}
+          <a href="{{ url_for('views.view_medical_data', patient_id=record.patient_id) }}"
+             class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            Cancel
+          </a>
+          {% endif %}
+          <button type="submit"
+                  class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            Update Record
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %} 

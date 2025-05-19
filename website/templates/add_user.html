@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% block title %}Add User{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="bg-white shadow sm:rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+      <div class="sm:flex sm:items-center">
+        <div class="sm:flex-auto">
+          <h1 class="text-2xl font-semibold text-gray-900">Add Doctor/Pharmacist</h1>
+          <p class="mt-2 text-sm text-gray-700">
+            Fill in the details below to add a new healthcare professional to the system.
+          </p>
+        </div>
+      </div>
+
+      <form method="POST" class="mt-8 space-y-6">
+        <!-- Basic Information -->
+        <div class="space-y-4">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
+              <input type="text" name="first_name" id="first_name" required
+                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+            </div>
+            <div>
+              <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
+              <input type="text" name="last_name" id="last_name" required
+                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+            </div>
+          </div>
+
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+            <input type="email" name="email" id="email" required
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+          </div>
+
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+            <input type="password" name="password" id="password" required
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+          </div>
+
+          <div>
+            <label for="role" class="block text-sm font-medium text-gray-700">Role</label>
+            <select name="role" id="role-select" required onchange="toggleSpecialty()"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+              <option value="doctor">Doctor</option>
+              <option value="pharmacist">Pharmacist</option>
+            </select>
+          </div>
+
+          <div id="specialty-field">
+            <label for="specialty" class="block text-sm font-medium text-gray-700">Specialty (for doctors)</label>
+            <select name="specialty" id="specialty"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+              <option value="" disabled selected>Select a specialty</option>
+              <option value="Cardiology">Cardiology</option>
+              <option value="Dermatology">Dermatology</option>
+              <option value="Endocrinology">Endocrinology</option>
+              <option value="Family Medicine">Family Medicine</option>
+              <option value="Gastroenterology">Gastroenterology</option>
+              <option value="General Surgery">General Surgery</option>
+              <option value="Internal Medicine">Internal Medicine</option>
+              <option value="Neurology">Neurology</option>
+              <option value="Obstetrics and Gynecology">Obstetrics and Gynecology</option>
+              <option value="Ophthalmology">Ophthalmology</option>
+              <option value="Orthopedics">Orthopedics</option>
+              <option value="Otolaryngology">Otolaryngology</option>
+              <option value="Pediatrics">Pediatrics</option>
+              <option value="Psychiatry">Psychiatry</option>
+              <option value="Pulmonology">Pulmonology</option>
+              <option value="Radiology">Radiology</option>
+              <option value="Urology">Urology</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Work Times Section -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-medium text-gray-900">Work Schedule</h3>
+            <button type="button" onclick="addWorkTime()"
+                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+              <i class="fas fa-plus mr-2"></i>
+              Add Time Slot
+            </button>
+          </div>
+
+          <div id="work-times" class="space-y-4">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 items-end">
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Day of Week</label>
+                <select name="work_times[0][day_of_week]" required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                  <option value="Monday">Monday</option>
+                  <option value="Tuesday">Tuesday</option>
+                  <option value="Wednesday">Wednesday</option>
+                  <option value="Thursday">Thursday</option>
+                  <option value="Friday">Friday</option>
+                  <option value="Saturday">Saturday</option>
+                  <option value="Sunday">Sunday</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Start Time</label>
+                <input type="time" name="work_times[0][start_time]" required class="start-time mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">End Time</label>
+                <input type="time" name="work_times[0][end_time]" required class="end-time mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+              </div>
+              <div class="col-span-3 flex items-center mt-2">
+                <input type="checkbox" class="work-247 mr-2" onchange="toggle247(this)" />
+                <label class="text-sm text-gray-700">Works 24/7</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="flex justify-end">
+          <button type="submit"
+                  class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <i class="fas fa-user-plus mr-2"></i>
+            Add User
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% block javascript %}
+<script>
+  function addWorkTime() {
+    const container = document.getElementById('work-times');
+    const idx = container.children.length;
+    const div = document.createElement('div');
+    div.className = 'grid grid-cols-1 gap-4 sm:grid-cols-3 items-end';
+    div.innerHTML = `
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Day of Week</label>
+        <select name="work_times[${idx}][day_of_week]" required
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+          <option value="Monday">Monday</option>
+          <option value="Tuesday">Tuesday</option>
+          <option value="Wednesday">Wednesday</option>
+          <option value="Thursday">Thursday</option>
+          <option value="Friday">Friday</option>
+          <option value="Saturday">Saturday</option>
+          <option value="Sunday">Sunday</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Start Time</label>
+        <input type="time" name="work_times[${idx}][start_time]" required class="start-time mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">End Time</label>
+        <input type="time" name="work_times[${idx}][end_time]" required class="end-time mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+      </div>
+      <div class="col-span-3 flex items-center mt-2">
+        <input type="checkbox" class="work-247 mr-2" onchange="toggle247(this)" />
+        <label class="text-sm text-gray-700">Works 24/7</label>
+      </div>
+    `;
+    container.appendChild(div);
+  }
+
+  function toggleSpecialty() {
+    const role = document.getElementById('role-select').value;
+    const specialtyField = document.getElementById('specialty-field');
+    specialtyField.style.display = role === 'doctor' ? 'block' : 'none';
+  }
+
+  // 24/7 logic
+  function toggle247(checkbox) {
+    const parent = checkbox.closest('.grid');
+    const start = parent.querySelector('.start-time');
+    const end = parent.querySelector('.end-time');
+    if (checkbox.checked) {
+      start.value = '00:00';
+      end.value = '23:59';
+      start.disabled = true;
+      end.disabled = true;
+    } else {
+      start.disabled = false;
+      end.disabled = false;
+      start.value = '';
+      end.value = '';
+    }
+  }
+
+  // Initialize specialty field visibility
+  toggleSpecialty();
+</script>
+{% endblock %}
+{% endblock %} 

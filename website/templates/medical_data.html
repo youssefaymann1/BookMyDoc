@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Medical Data - {{ patient.user.first_name }} {{ patient.user.last_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+      <div>
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+          Medical Records for {{ patient.user.first_name }} {{ patient.user.last_name }}
+        </h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">
+          Patient's complete medical history and records
+        </p>
+      </div>
+      {% if user.role == 'doctor' %}
+      <a href="{{ url_for('views.add_medical_record', patient_id=patient.id) }}" 
+         class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+        <i class="fas fa-plus mr-2"></i> Add New Record
+      </a>
+      {% endif %}
+    </div>
+
+    <div class="border-t border-gray-200">
+      {% if medical_records %}
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+          <ul class="divide-y divide-gray-200">
+            {% for record in medical_records %}
+              <li>
+                <div class="px-4 py-4 sm:px-6">
+                  <div class="flex items-center justify-between">
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-blue-600 truncate">
+                        {{ record.title }}
+                      </p>
+                      <p class="mt-1 text-sm text-gray-500">
+                        Type: {{ record.type }}
+                      </p>
+                      <p class="mt-1 text-sm text-gray-500">
+                        Date: {{ record.date.strftime('%Y-%m-%d %H:%M') }}
+                      </p>
+                      <p class="mt-2 text-sm text-gray-700">
+                        {{ record.description }}
+                      </p>
+                      {% if record.prescription %}
+                        <div class="mt-2">
+                          <p class="text-sm font-medium text-gray-900">Prescription:</p>
+                          <p class="mt-1 text-sm text-gray-700">{{ record.prescription }}</p>
+                        </div>
+                      {% endif %}
+                    </div>
+                    {% if (user.role == 'doctor' and record.doctor.user.id == user.id) or 
+                          (user.role == 'patient' and record.patient.user.id == user.id) %}
+                      <div class="ml-4 flex-shrink-0 flex space-x-2">
+                        <a href="{{ url_for('views.edit_medical_record', record_id=record.id) }}" 
+                           class="text-blue-600 hover:text-blue-900">
+                          <i class="fas fa-edit"></i>
+                        </a>
+                        {% if user.role == 'doctor' and record.doctor.user.id == user.id %}
+                        <form action="{{ url_for('views.delete_medical_record', record_id=record.id) }}" 
+                              method="POST" 
+                              onsubmit="return confirm('Are you sure you want to delete this record?');"
+                              class="inline">
+                          <button type="submit" class="text-red-600 hover:text-red-900">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </form>
+                        {% endif %}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% else %}
+        <div class="px-4 py-5 sm:px-6">
+          <p class="text-gray-500 text-center">No medical records found.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %} 
