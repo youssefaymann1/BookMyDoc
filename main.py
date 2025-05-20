@@ -1,7 +1,12 @@
 from website import db, create_app
 from website.models import User, UserRole, Patient, Doctor, Pharmacist
 from werkzeug.security import generate_password_hash
+
 from flask_login import current_user
+from flask import Flask
+app = Flask(__name__)
+
+# باقي الكود...
 
 app = create_app()
 
