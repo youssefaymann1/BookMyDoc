@@ -2,10 +2,17 @@ from flask import Flask, session
 from flask_sqlalchemy import SQLAlchemy
 from os import path
 from flask_mail import Mail
+from flask_login import LoginManager
 
 db = SQLAlchemy()
 DB_NAME = "database.db"
 mail = Mail()
+login_manager = LoginManager()
+
+@login_manager.user_loader
+def load_user(id):
+    from .models import User
+    return User.query.get(int(id))
 
 def create_app():
     app = Flask(__name__)
@@ -18,6 +25,8 @@ def create_app():
     app.config['MAIL_PASSWORD'] = 'sjalamjygtofbrjh'
     db.init_app(app)
     mail.init_app(app)
+    login_manager.init_app(app)
+    login_manager.login_view = 'auth.login'
 
     from .views import views
     from .auth import auth

@@ -18,10 +18,27 @@ def login():
             })
             if hasattr(result, 'session') and result.session:
                 session['supabase_token'] = result.session.access_token
+                # Always sync or fetch the local User record
+                user = User.query.filter_by(email=email).first()
+                if not user:
+                    # If not found, create a new local user (for patients, default role)
+                    first_name = result.user.user_metadata.get('first_name', '') if hasattr(result.user, 'user_metadata') else ''
+                    last_name = result.user.user_metadata.get('last_name', '') if hasattr(result.user, 'user_metadata') else ''
+                    role = result.user.user_metadata.get('role', 'patient')
+                    user = User(
+                        email=email,
+                        password='',
+                        first_name=first_name,
+                        last_name=last_name,
+                        role=role
+                    )
+                    db.session.add(user)
+                    db.session.commit()
+                # Set session['user']['id'] to local User.id (integer)
                 session['user'] = {
-                    'id': result.user.id,
-                    'email': result.user.email,
-                    'role': result.user.user_metadata.get('role', 'patient')
+                    'id': user.id,
+                    'email': user.email,
+                    'role': user.role
                 }
                 # Force admin role for admin@gmail.com
                 if session['user']['email'] == 'admin@gmail.com':
@@ -30,30 +47,18 @@ def login():
                 if session['user']['email'] == 'admin@gmail.com':
                     return redirect(url_for('views.admin_dashboard'))
                 if session['user']['role'] == 'doctor':
-                    # Sync User record from Supabase
-                    user = User.query.filter_by(email=session['user']['email']).first()
+                    # Sync User record from Supabase (already done above)
                     first_name = result.user.user_metadata.get('first_name', '') if hasattr(result.user, 'user_metadata') else ''
                     last_name = result.user.user_metadata.get('last_name', '') if hasattr(result.user, 'user_metadata') else ''
-                    if not user:
-                        user = User(
-                            email=session['user']['email'],
-                            password='',  # Not used for Supabase
-                            first_name=first_name,
-                            last_name=last_name,
-                            role=UserRole.DOCTOR.value
-                        )
-                        db.session.add(user)
+                    updated = False
+                    if user.first_name != first_name:
+                        user.first_name = first_name
+                        updated = True
+                    if user.last_name != last_name:
+                        user.last_name = last_name
+                        updated = True
+                    if updated:
                         db.session.commit()
-                    else:
-                        updated = False
-                        if user.first_name != first_name:
-                            user.first_name = first_name
-                            updated = True
-                        if user.last_name != last_name:
-                            user.last_name = last_name
-                            updated = True
-                        if updated:
-                            db.session.commit()
                     # Create Doctor profile if needed
                     doctor = Doctor.query.filter_by(user_id=user.id).first()
                     if not doctor:

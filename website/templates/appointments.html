@@ -54,6 +54,9 @@
                     <a href="{{ url_for('views.view_medical_data', patient_id=appointment.patient.id) }}" class="ml-2 inline-flex items-center px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-800 hover:bg-blue-200" title="View/Update Medical Data">
                       <i class="fas fa-notes-medical mr-1"></i> Medical Data
                     </a>
+                    <a href="{{ url_for('views.add_medical_record', patient_id=appointment.patient.id) }}" class="ml-2 inline-flex items-center px-2 py-1 text-xs font-medium rounded bg-green-100 text-green-800 hover:bg-green-200" title="Add Medical Data">
+                      <i class="fas fa-plus mr-1"></i> Add Data
+                    </a>
                   {% endif %}
                 </td>
                 <td class="whitespace-nowrap px-3 py-4 text-sm">

@@ -235,6 +235,11 @@
                   <p class="text-sm font-medium text-blue-600 truncate">
                     {{ record.title }}
                   </p>
+                  {% if record.doctor and record.doctor.user %}
+                    <p class="mt-1 text-sm font-semibold text-blue-800">
+                      Added by: Dr. {{ record.doctor.user.first_name }} {{ record.doctor.user.last_name }}
+                    </p>
+                  {% endif %}
                   <p class="mt-1 text-sm text-gray-500">
                     Type: {{ record.type|capitalize }}
                   </p>

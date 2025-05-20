@@ -54,7 +54,8 @@
           <div id="specialty-field">
             <label for="specialty" class="block text-sm font-medium text-gray-700">Specialty (for doctors)</label>
             <select name="specialty" id="specialty"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    onchange="toggleOtherSpecialty()">
               <option value="" disabled selected>Select a specialty</option>
               <option value="Cardiology">Cardiology</option>
               <option value="Dermatology">Dermatology</option>
@@ -73,7 +74,13 @@
               <option value="Pulmonology">Pulmonology</option>
               <option value="Radiology">Radiology</option>
               <option value="Urology">Urology</option>
+              <option value="Other">Other</option>
             </select>
+            <div id="other-specialty-field" style="display:none;">
+              <label for="other_specialty" class="block text-sm font-medium text-gray-700 mt-2">Please specify specialty</label>
+              <input type="text" name="other_specialty" id="other_specialty"
+                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+            </div>
           </div>
         </div>
 
@@ -193,8 +200,21 @@
     }
   }
 
+  function toggleOtherSpecialty() {
+    const specialty = document.getElementById('specialty').value;
+    const otherField = document.getElementById('other-specialty-field');
+    if (specialty === 'Other') {
+      otherField.style.display = 'block';
+      document.getElementById('other_specialty').required = true;
+    } else {
+      otherField.style.display = 'none';
+      document.getElementById('other_specialty').required = false;
+    }
+  }
+
   // Initialize specialty field visibility
   toggleSpecialty();
+  document.getElementById('specialty').addEventListener('change', toggleOtherSpecialty);
 </script>
 {% endblock %}
 {% endblock %} 

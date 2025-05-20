@@ -455,12 +455,13 @@ def edit_appointment(appointment_id):
 @views.route('/medical-data/add/<int:patient_id>', methods=['GET', 'POST'])
 @login_required
 def add_medical_record(patient_id):
-    if session['user']['role'] != 'doctor':
-        flash('Only doctors can add medical records.', 'error')
+    if session['user']['role'] not in ['doctor', 'pharmacist']:
+        flash('Only doctors and pharmacists can add medical records.', 'error')
         return redirect(url_for('views.home'))
     
     patient = Patient.query.get_or_404(patient_id)
-    doctor = Doctor.query.filter_by(user_id=session['user']['id']).first()
+    doctor = Doctor.query.filter_by(user_id=session['user']['id']).first() if session['user']['role'] == 'doctor' else None
+    pharmacist = Pharmacist.query.filter_by(user_id=session['user']['id']).first() if session['user']['role'] == 'pharmacist' else None
     
     if request.method == 'POST':
         title = request.form.get('title')
@@ -470,7 +471,7 @@ def add_medical_record(patient_id):
         
         new_record = MedicalRecord(
             patient_id=patient_id,
-            doctor_id=doctor.id,
+            doctor_id=doctor.id if doctor else None,
             title=title,
             type=type,
             description=description,
@@ -490,9 +491,11 @@ def add_medical_record(patient_id):
 def edit_medical_record(record_id):
     record = MedicalRecord.query.get_or_404(record_id)
     
-    # Check if user has permission to edit (either doctor who created it or the patient)
-    if not (session['user']['role'] == 'doctor' and record.doctor.user.id == session['user']['id']) and \
-       not (session['user']['role'] == 'patient' and record.patient.user.id == session['user']['id']):
+    # Check if user has permission to edit (doctor who created it or pharmacist)
+    if not (
+        (session['user']['role'] == 'doctor' and record.doctor and record.doctor.user.id == session['user']['id']) or
+        (session['user']['role'] == 'pharmacist')
+    ):
         flash('You do not have permission to edit this record.', 'error')
         return redirect(url_for('views.home'))
 
@@ -504,9 +507,6 @@ def edit_medical_record(record_id):
         
         db.session.commit()
         flash('Medical record updated successfully!', 'success')
-        
-        if session['user']['role'] == 'patient':
-            return redirect(url_for('views.view_profile'))
         return redirect(url_for('views.view_medical_data', patient_id=record.patient_id))
 
     return render_template("edit_medical_record.html", record=record, user=session.get('user'))
@@ -602,10 +602,16 @@ def pharma_messages():
 
     if request.method == 'POST' and selected_pharmacist:
         content = request.form.get('content')
+        if not content:
+            flash('Message cannot be empty.', 'error')
+            return redirect(url_for('views.pharma_messages', pharmacist_id=selected_pharmacist.id))
+            
         file = request.files.get('file')
         file_path = None
         if file and file.filename:
             file_path = save_uploaded_file(file)
+        # Debug print for sender and receiver IDs
+        print("[DEBUG] Patient sending message: sender_id =", session['user']['id'], "receiver_id =", selected_pharmacist.user_id)
         msg = PharmaMessage(
             sender_id=session['user']['id'],
             receiver_id=selected_pharmacist.user_id,
@@ -633,6 +639,18 @@ def pharma_messages_pharma():
     ).distinct().all()
     patient_ids = [pid[0] for pid in patient_ids]
     patients = User.query.filter(User.id.in_(patient_ids)).all()
+
+    # DEBUG: Print patient_ids and patients
+    print("[DEBUG] Pharmacist user_id:", session['user']['id'])
+    print("[DEBUG] Patient IDs who messaged:", patient_ids)
+    print("[DEBUG] Patients found:", [f'{p.first_name} {p.last_name} ({p.email})' for p in patients])
+
+    # Fallback for testing: show all patients if none found
+    if not patients:
+        patients = User.query.filter_by(role='patient').all()
+        print("Fallback: All patients in DB:", [f'{p.first_name} {p.last_name} ({p.email})' for p in patients])
+        print("Total fallback patients:", len(patients))
+
     patient_id = request.args.get('patient_id')
     selected_patient = None
     messages = []
@@ -654,6 +672,10 @@ def pharma_messages_pharma():
 
     if request.method == 'POST' and selected_patient:
         content = request.form.get('content')
+        if not content:
+            flash('Message cannot be empty.', 'error')
+            return redirect(url_for('views.pharma_messages_pharma', patient_id=selected_patient.id))
+            
         file = request.files.get('file')
         file_path = None
         if file and file.filename:
