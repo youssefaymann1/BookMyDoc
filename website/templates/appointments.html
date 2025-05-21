@@ -45,8 +45,12 @@
                   {{ appointment.appointment_time.strftime('%B %d, %Y') }} at {{ appointment.appointment_time.strftime('%I:%M %p') }}
                 </td>
                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                  Dr. {{ appointment.doctor.user.first_name }} {{ appointment.doctor.user.last_name }}
-                  <div class="text-xs text-gray-400">{{ appointment.doctor.specialty }}</div>
+                  {% if appointment.doctor and appointment.doctor.user %}
+                    Dr. {{ appointment.doctor.user.first_name }} {{ appointment.doctor.user.last_name }}
+                    <div class="text-xs text-gray-400">{{ appointment.doctor.specialty }}</div>
+                  {% else %}
+                    [Doctor Deleted]
+                  {% endif %}
                 </td>
                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                   {{ appointment.patient.user.first_name }} {{ appointment.patient.user.last_name }}

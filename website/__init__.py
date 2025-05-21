@@ -3,11 +3,13 @@ from flask_sqlalchemy import SQLAlchemy
 from os import path
 from flask_mail import Mail
 from flask_login import LoginManager
+from flask_migrate import Migrate
 
 db = SQLAlchemy()
 DB_NAME = "database.db"
 mail = Mail()
 login_manager = LoginManager()
+migrate = Migrate()
 
 @login_manager.user_loader
 def load_user(id):
@@ -26,6 +28,7 @@ def create_app():
     db.init_app(app)
     mail.init_app(app)
     login_manager.init_app(app)
+    migrate.init_app(app, db)
     login_manager.login_view = 'auth.login'
 
     from .views import views

@@ -183,7 +183,11 @@
                 <div class="flex items-center justify-between">
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-blue-600 truncate">
-                      Appointment with Dr. {{ appointment.doctor.user.first_name }} {{ appointment.doctor.user.last_name }}
+                      {% if appointment.doctor and appointment.doctor.user %}
+                        Appointment with Dr. {{ appointment.doctor.user.first_name }} {{ appointment.doctor.user.last_name }}
+                      {% else %}
+                        Appointment with [Doctor Deleted]
+                      {% endif %}
                     </p>
                     <p class="mt-1 text-sm text-gray-500">
                       {{ appointment.appointment_time.strftime('%B %d, %Y at %I:%M %p') }}

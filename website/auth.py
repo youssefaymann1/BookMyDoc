@@ -38,8 +38,9 @@ def login():
                 session['user'] = {
                     'id': user.id,
                     'email': user.email,
-                    'role': user.role
+                    'role': str(user.role).lower() if user.role else ''
                 }
+                print('Session user:', session['user'])
                 # Force admin role for admin@gmail.com
                 if session['user']['email'] == 'admin@gmail.com':
                     session['user']['role'] = 'admin'

@@ -1,13 +1,9 @@
 from website import db, create_app
 from website.models import User, UserRole, Patient, Doctor, Pharmacist
 from werkzeug.security import generate_password_hash
+import flask_migrate  # Ensure migration commands are registered
 
 app = create_app()
-
-# Add context processor to make user available to all templates
-@app.context_processor
-def inject_user():
-    return dict(user=current_user)
 
 # Create tables if they don't exist
 with app.app_context():

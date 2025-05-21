@@ -10,6 +10,7 @@
     <title>{% block title %}Home{% endblock %} - BookMyDoc</title>
   </head>
   <body class="bg-gray-50 min-h-screen flex flex-col">
+    <div style="display:none">{{ user }}</div>
     {% set unread_pharma_count = 0 %}
     {% if user %}
       {% if user.role == 'patient' %}
@@ -32,9 +33,15 @@
           <!-- Desktop Navigation -->
           <div class="hidden md:flex items-center space-x-4">
             {% if user %}
-              <a href="/" class="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
-                <i class="fas fa-home mr-1"></i> Home
-              </a>
+              {% if user.role == 'doctor' %}
+                <a href="{{ url_for('views.doctor_own_profile') }}" class="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                  <i class="fas fa-user mr-1"></i> Profile
+                </a>
+              {% else %}
+                <a href="/" class="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                  <i class="fas fa-home mr-1"></i> Home
+                </a>
+              {% endif %}
               {% if user.role == 'admin' %}
                 <a href="{{ url_for('views.admin_dashboard') }}" class="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
                   <i class="fas fa-tachometer-alt mr-1"></i> Admin Dashboard
@@ -87,9 +94,15 @@
       <div class="hidden md:hidden" id="mobile-menu">
         <div class="px-2 pt-2 pb-3 space-y-1">
           {% if user %}
-            <a href="/" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50">
-              <i class="fas fa-home mr-1"></i> Home
-            </a>
+            {% if user.role == 'doctor' %}
+              <a href="{{ url_for('views.doctor_own_profile') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50">
+                <i class="fas fa-user mr-1"></i> Profile
+              </a>
+            {% else %}
+              <a href="/" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50">
+                <i class="fas fa-home mr-1"></i> Home
+              </a>
+            {% endif %}
             {% if user.role == 'admin' %}
               <a href="{{ url_for('views.admin_dashboard') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50">
                 <i class="fas fa-tachometer-alt mr-1"></i> Admin Dashboard

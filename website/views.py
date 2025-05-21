@@ -93,6 +93,9 @@ def add_user():
             last_name = request.form.get('last_name')
             role = request.form.get('role')
             specialty = request.form.get('specialty') if role == UserRole.DOCTOR.value else None
+            clinic_address = request.form.get('clinic_address') if role == UserRole.DOCTOR.value else None
+            phone_number = request.form.get('phone_number') if role == UserRole.DOCTOR.value else None
+            certification = request.form.get('certification') if role == UserRole.DOCTOR.value else None
 
             # Check if email already exists
             if User.query.filter_by(email=email).first():
@@ -132,7 +135,10 @@ def add_user():
             if role == UserRole.DOCTOR.value:
                 doctor = Doctor(
                     user_id=new_user.id,
-                    specialty=specialty
+                    specialty=specialty,
+                    clinic_address=clinic_address,
+                    phone_number=phone_number,
+                    certification=certification
                 )
                 db.session.add(doctor)
                 db.session.commit()
@@ -195,63 +201,61 @@ def add_user():
 @views.route('/get_available_slots', methods=['GET'])
 @login_required
 def get_available_slots():
+    """
+    Returns available 30-min slots for a doctor on a given date.
+    Only returns slots that are not already booked.
+    """
     doctor_id = request.args.get('doctor_id')
     date_str = request.args.get('date')
-    
     if not doctor_id or not date_str:
         return jsonify({'error': 'Missing required parameters'}), 400
-    
     try:
+        doctor_id = int(doctor_id)
         date = parser.parse(date_str).date()
-        doctor = Doctor.query.get_or_404(doctor_id)
-        
-        # Get the day of week for the selected date
         day_of_week = date.strftime('%A')
-        
-        # Fix: Match day_of_week case-insensitively
+        # Find all work times for this doctor on this day
         work_times = WorkTime.query.filter(
             WorkTime.doctor_id == doctor_id,
             db.func.lower(WorkTime.day_of_week) == day_of_week.lower()
         ).all()
-        
         if not work_times:
-            return jsonify({'slots': []})
-        
-        # Get existing appointments for the selected date
+            return jsonify({'slots': [], 'message': 'Doctor is not available on this day.'})
+        # Get all booked times for this doctor on this date
         existing_appointments = Appointment.query.filter(
             Appointment.doctor_id == doctor_id,
-            db.func.date(Appointment.appointment_time) == date
+            db.func.date(Appointment.appointment_time) == date,
+            Appointment.status != 'cancelled'
         ).all()
-        
         booked_times = {apt.appointment_time.time() for apt in existing_appointments}
-        
-        # Generate 30-minute slots
+        # Generate 30-min slots for each work period
         available_slots = []
         for wt in work_times:
-            current_time = wt.start_time
-            end_time = wt.end_time
-            
-            while current_time < end_time:
-                slot_end = (datetime.combine(date, current_time) + timedelta(minutes=30)).time()
-                if slot_end <= end_time and current_time not in booked_times:
-                    available_slots.append(current_time.strftime('%H:%M'))
-                current_time = slot_end
-        
+            current_dt = datetime.combine(date, wt.start_time)
+            end_dt = datetime.combine(date, wt.end_time)
+            while current_dt < end_dt:
+                slot_time = current_dt.time()
+                if slot_time not in booked_times:
+                    available_slots.append(slot_time.strftime('%H:%M'))
+                current_dt += timedelta(minutes=30)
+        if not available_slots:
+            return jsonify({'slots': [], 'message': 'All time slots for this day are booked.'})
         return jsonify({'slots': sorted(available_slots)})
-    
     except Exception as e:
-        print(f"Error in get_available_slots: {str(e)}")  # Add debug logging
+        print(f"[ERROR] get_available_slots: {str(e)}")
         return jsonify({'error': str(e)}), 400
 
 @views.route('/appointments/book', methods=['GET', 'POST'])
 @login_required
 @role_required(UserRole.PATIENT.value)
 def book_appointment():
-    # Get all doctors with their work times and user information
+    """
+    Booking page: GET shows form, POST books appointment if slot is available.
+    """
+    # Prepare doctor list with schedule for frontend
     doctors = Doctor.query.all()
     doctors_with_schedule = []
     for doctor in doctors:
-        if doctor.user:  # Only include if user relationship exists
+        if doctor.user:
             work_times = WorkTime.query.filter_by(doctor_id=doctor.id).all()
             schedule = {}
             for wt in work_times:
@@ -264,95 +268,52 @@ def book_appointment():
                 })
             doctors_with_schedule.append({
                 'id': doctor.id,
-                'name': doctor.user.first_name,
+                'name': f"{doctor.user.first_name} {doctor.user.last_name}",
                 'specialty': doctor.specialty,
                 'schedule': schedule
             })
-
     if request.method == 'POST':
         try:
-            # Get form data
-            doctor_id = request.form.get('doctor')
+            doctor_id = int(request.form.get('doctor'))
             appointment_type = request.form.get('type')
             date = request.form.get('date')
             reason = request.form.get('reason')
-
-            # Validate required fields (no time field)
-            if not all([doctor_id, appointment_type, date]):
+            selected_time = request.form.get('selected_time') or request.form.get('time')
+            if not all([doctor_id, appointment_type, date, reason, selected_time]):
                 flash('Please fill in all required fields.', 'error')
                 return redirect(url_for('views.book_appointment'))
-
+            # Check if the selected time slot is still available
+            date_obj = datetime.strptime(date, '%Y-%m-%d').date()
+            appointment_datetime = datetime.strptime(f"{date} {selected_time}", '%Y-%m-%d %H:%M')
+            # Check for double booking
+            existing = Appointment.query.filter_by(doctor_id=doctor_id, appointment_time=appointment_datetime, status='scheduled').first()
+            if existing:
+                flash('This time slot is already booked. Please select another slot.', 'error')
+                return redirect(url_for('views.book_appointment'))
             # Get or create patient
             patient = Patient.query.filter_by(user_id=session['user']['id']).first()
             if not patient:
                 patient = Patient(user_id=session['user']['id'])
                 db.session.add(patient)
                 db.session.commit()
-
-            # Find doctor's work time for the selected day
-            date_obj = datetime.strptime(date, '%Y-%m-%d').date()
-            day_of_week = date_obj.strftime('%A')
-            work_times = WorkTime.query.filter(
-                WorkTime.doctor_id == doctor_id,
-                db.func.lower(WorkTime.day_of_week) == day_of_week.lower()
-            ).order_by(WorkTime.start_time).all()
-
-            if not work_times:
-                flash('Doctor is not available on the selected day.', 'error')
-                return redirect(url_for('views.book_appointment'))
-
-            if len(work_times) > 1:
-                flash('Warning: Doctor has multiple work periods on this day. Only the first will be used.', 'warning')
-
-            work_time = work_times[0]
-
-            # Count existing appointments for that doctor on that day
-            existing_appointments = Appointment.query.filter(
-                Appointment.doctor_id == doctor_id,
-                db.func.date(Appointment.appointment_time) == date_obj,
-                Appointment.status != 'cancelled'
-            ).order_by(Appointment.appointment_time).all()
-
-            slot_number = len(existing_appointments) + 1
-            slot_duration = 30  # minutes
-            appointment_time = (datetime.combine(date_obj, work_time.start_time) +
-                                timedelta(minutes=slot_duration * (slot_number - 1)))
-
-            # Only allow slots that END before or at end_time
-            slot_end_time = (appointment_time + timedelta(minutes=slot_duration)).time()
-            if slot_end_time > work_time.end_time:
-                flash('No more available slots for this day.', 'error')
-                return redirect(url_for('views.book_appointment'))
-
-            # Create appointment
+            # Book appointment
             appointment = Appointment(
                 patient_id=patient.id,
                 doctor_id=doctor_id,
-                appointment_time=appointment_time,
+                appointment_time=appointment_datetime,
                 type=appointment_type,
                 reason=reason,
                 status='scheduled'
             )
             db.session.add(appointment)
             db.session.commit()
-
-            msg = Message(
-                subject="Your Appointment Confirmation",
-                sender="bookmydoc11@gmail.com",
-                recipients=[session['user']['email']]
-            )
-            msg.body = f"""Hello {session['user'].get('first_name', session['user'].get('email', 'User'))},\n\nYour appointment has been booked successfully!\n\nAppointment Details:\n- Doctor: Dr. {getattr(appointment.doctor.user, 'first_name', '')} {getattr(appointment.doctor.user, 'last_name', '')}\n- Time: {appointment.appointment_time.strftime('%B %d, %Y at %I:%M %p')}\n- Your Appointment Number: {slot_number}\n\nThank you for using BookMyDoc!\n"""
-            mail.send(msg)
-
-            flash(f'Appointment booked! Your number is {slot_number}. Please come at {appointment_time.strftime("%I:%M %p")}.', 'success')
+            flash('Appointment booked successfully!', 'success')
             return redirect(url_for('views.view_appointments'))
-
         except Exception as e:
-            print(f"Error in book_appointment: {str(e)}")
+            print(f"[ERROR] book_appointment: {str(e)}")
             db.session.rollback()
-            flash('Error booking appointment. Please try again.', 'error')
+            flash('Error booking appointment. Please try again. ' + str(e), 'error')
             return redirect(url_for('views.book_appointment'))
-
     return render_template('book_appointment.html', 
                          doctors=doctors_with_schedule, 
                          user=session.get('user'),
@@ -399,12 +360,12 @@ def get_doctor_schedule():
         
         # Organize work times by day of week
         schedule = {
-            'mon': [], 'tue': [], 'wed': [], 'thu': [], 
-            'fri': [], 'sat': [], 'sun': []
+            'monday': [], 'tuesday': [], 'wednesday': [], 'thursday': [], 
+            'friday': [], 'saturday': [], 'sunday': []
         }
         
         for wt in work_times:
-            day = wt.day_of_week.lower()[:3]  # Convert to lowercase and get first 3 letters
+            day = wt.day_of_week.lower()  # Convert to lowercase
             if day in schedule:
                 schedule[day].append({
                     'start': wt.start_time.strftime('%H:%M'),
@@ -414,6 +375,7 @@ def get_doctor_schedule():
         return jsonify({'schedule': schedule})
     
     except Exception as e:
+        print(f"[ERROR] get_doctor_schedule: {str(e)}")
         return jsonify({'error': str(e)}), 400
 
 @views.route('/appointments/edit/<int:appointment_id>', methods=['GET', 'POST'])
@@ -850,3 +812,147 @@ def cancel_appointment(appointment_id):
     db.session.commit()
     flash('Appointment cancelled successfully.', 'success')
     return redirect(url_for('views.view_appointments'))
+
+@views.route('/debug_worktimes/<int:doctor_id>')
+def debug_worktimes(doctor_id):
+    work_times = WorkTime.query.filter_by(doctor_id=doctor_id).all()
+    if not work_times:
+        return f"No work times found for doctor_id {doctor_id}"
+    return '<br>'.join([f"{wt.day_of_week}: {wt.start_time} - {wt.end_time}" for wt in work_times])
+
+@views.route('/debug_doctors')
+def debug_doctors():
+    doctors = Doctor.query.all()
+    return '<br>'.join([f"ID: {doc.id}, Name: {doc.user.first_name} {doc.user.last_name}, Email: {doc.user.email}" for doc in doctors if doc.user])
+
+@views.route('/admin/get_doctor/<int:doctor_id>')
+@login_required
+@role_required(UserRole.ADMIN.value)
+def get_doctor(doctor_id):
+    doctor = Doctor.query.get_or_404(doctor_id)
+    user = doctor.user
+    work_times = WorkTime.query.filter_by(doctor_id=doctor.id).all()
+    return jsonify({
+        'id': doctor.id,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'email': user.email,
+        'specialty': doctor.specialty,
+        'clinic_address': doctor.clinic_address,
+        'phone_number': doctor.phone_number,
+        'certification': doctor.certification,
+        'work_times': [
+            {
+                'id': wt.id,
+                'day_of_week': wt.day_of_week,
+                'start_time': wt.start_time.strftime('%H:%M'),
+                'end_time': wt.end_time.strftime('%H:%M')
+            } for wt in work_times
+        ]
+    })
+
+@views.route('/admin/update_doctor', methods=['POST'])
+@login_required
+@role_required(UserRole.ADMIN.value)
+def update_doctor():
+    doctor_id = request.form.get('doctor_id')
+    doctor = Doctor.query.get_or_404(doctor_id)
+    user = doctor.user
+
+    # Update user fields
+    user.first_name = request.form.get('first_name')
+    user.last_name = request.form.get('last_name')
+    user.email = request.form.get('email')
+
+    # Update doctor fields
+    doctor.specialty = request.form.get('specialty')
+    doctor.clinic_address = request.form.get('clinic_address')
+    doctor.phone_number = request.form.get('phone_number')
+    doctor.certification = request.form.get('certification')
+
+    # Update work times
+    work_times_json = request.form.get('work_times_json')
+    if work_times_json is not None:
+        import json
+        from .models import WorkTime
+        try:
+            new_work_times = json.loads(work_times_json)
+            if not new_work_times:
+                return jsonify({'success': False, 'error': 'At least one work time slot is required.'})
+            # Remove old work times
+            WorkTime.query.filter_by(doctor_id=doctor.id).delete()
+            # Add new work times
+            for wt in new_work_times:
+                start_time = datetime.strptime(wt['start_time'], '%H:%M').time()
+                end_time = datetime.strptime(wt['end_time'], '%H:%M').time()
+                work_time = WorkTime(
+                    doctor_id=doctor.id,
+                    day_of_week=wt['day_of_week'],
+                    start_time=start_time,
+                    end_time=end_time
+                )
+                db.session.add(work_time)
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'success': False, 'error': str(e)})
+
+    try:
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@views.route('/doctor/profile', methods=['GET', 'POST'])
+@login_required
+@role_required(UserRole.DOCTOR.value)
+def doctor_own_profile():
+    doctor = Doctor.query.filter_by(user_id=session['user']['id']).first()
+    if not doctor:
+        flash('Doctor profile not found.', 'error')
+        return redirect(url_for('views.home'))
+    if request.method == 'POST':
+        try:
+            # Update doctor info from form fields
+            doctor.user.first_name = request.form.get('first_name')
+            doctor.user.last_name = request.form.get('last_name')
+            doctor.user.email = request.form.get('email')
+            doctor.specialty = request.form.get('specialty')
+            doctor.clinic_address = request.form.get('clinic_address')
+            doctor.phone_number = request.form.get('phone_number')
+            doctor.certification = request.form.get('certification')
+            # Update work schedule
+            # Remove old work times
+            WorkTime.query.filter_by(doctor_id=doctor.id).delete()
+            db.session.flush()  # Ensure deletion before adding new
+            # Add new work times from form
+            work_time_indices = set()
+            for key in request.form:
+                if key.startswith('work_times[') and key.endswith('][day_of_week]'):
+                    idx = key.split('[')[1].split(']')[0]
+                    work_time_indices.add(idx)
+            for idx in work_time_indices:
+                day = request.form.get(f'work_times[{idx}][day_of_week]')
+                start = request.form.get(f'work_times[{idx}][start_time]')
+                end = request.form.get(f'work_times[{idx}][end_time]')
+                if day and start and end:
+                    wt = WorkTime(
+                        doctor_id=doctor.id,
+                        day_of_week=day,
+                        start_time=datetime.strptime(start, '%H:%M').time(),
+                        end_time=datetime.strptime(end, '%H:%M').time()
+                    )
+                    db.session.add(wt)
+            db.session.commit()
+            flash('Profile updated successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating profile: {str(e)}', 'error')
+        return redirect(url_for('views.doctor_own_profile'))
+    return render_template('doctor_profile.html', doctor=doctor, can_edit=True)
+
+@views.route('/doctor/<int:doctor_id>')
+@login_required
+def view_doctor_profile(doctor_id):
+    doctor = Doctor.query.get_or_404(doctor_id)
+    return render_template('doctor_profile.html', doctor=doctor)

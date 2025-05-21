@@ -82,6 +82,24 @@
                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
             </div>
           </div>
+
+          <div id="doctor-extra-fields" style="display:none;">
+            <div>
+              <label for="clinic_address" class="block text-sm font-medium text-gray-700">Clinic Address</label>
+              <input type="text" name="clinic_address" id="clinic_address"
+                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+            </div>
+            <div>
+              <label for="phone_number" class="block text-sm font-medium text-gray-700">Phone Number</label>
+              <input type="text" name="phone_number" id="phone_number"
+                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+            </div>
+            <div>
+              <label for="certification" class="block text-sm font-medium text-gray-700">Doctor's Qualification</label>
+              <textarea name="certification" id="certification" rows="2"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>
+            </div>
+          </div>
         </div>
 
         <!-- Work Times Section -->
@@ -179,7 +197,9 @@
   function toggleSpecialty() {
     const role = document.getElementById('role-select').value;
     const specialtyField = document.getElementById('specialty-field');
+    const extraFields = document.getElementById('doctor-extra-fields');
     specialtyField.style.display = role === 'doctor' ? 'block' : 'none';
+    extraFields.style.display = role === 'doctor' ? 'block' : 'none';
   }
 
   // 24/7 logic
