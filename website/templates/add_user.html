@@ -14,7 +14,7 @@
         </div>
       </div>
 
-      <form method="POST" class="mt-8 space-y-6">
+      <form method="POST" enctype="multipart/form-data" class="mt-8 space-y-6">
         <!-- Basic Information -->
         <div class="space-y-4">
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -44,11 +44,17 @@
 
           <div>
             <label for="role" class="block text-sm font-medium text-gray-700">Role</label>
-            <select name="role" id="role-select" required onchange="toggleSpecialty()"
+            <select name="role" id="role" required onchange="togglePharmacyNameField()"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-              <option value="doctor">Doctor</option>
-              <option value="pharmacist">Pharmacist</option>
+              <option value="Doctor">Doctor</option>
+              <option value="Pharmacist">Pharmacist</option>
             </select>
+          </div>
+
+          <div id="pharmacy-name-field" style="display:none;">
+            <label for="pharmacy_name" class="block text-sm font-medium text-gray-700">Pharmacy Name</label>
+            <input type="text" name="pharmacy_name" id="pharmacy_name"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
           </div>
 
           <div id="specialty-field">
@@ -99,6 +105,20 @@
               <textarea name="certification" id="certification" rows="2"
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>
             </div>
+          </div>
+
+          <div>
+            <label for="photo" class="block text-sm font-medium text-gray-700">Profile Photo (optional)</label>
+            <input id="photo" name="photo" type="file" accept="image/*"
+                   class="mt-1 block w-full text-sm text-gray-700 border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            <p class="text-xs text-gray-500 mt-1">Allowed types: JPG, PNG, GIF, etc.</p>
+          </div>
+
+          <div id="certificate-field" style="display:none;">
+            <label for="certificate" class="block text-sm font-medium text-gray-700">Certificate <span id="certificate-required" class="text-red-500" style="display:none;">*</span></label>
+            <input type="file" name="certificate" id="certificate" accept="application/pdf,image/*"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+            <p class="text-xs text-gray-500 mt-1">Allowed types: PDF, JPG, PNG, etc.</p>
           </div>
         </div>
 
@@ -158,6 +178,7 @@
 </div>
 
 {% block javascript %}
+{{ super() }}
 <script>
   function addWorkTime() {
     const container = document.getElementById('work-times');
@@ -195,11 +216,11 @@
   }
 
   function toggleSpecialty() {
-    const role = document.getElementById('role-select').value;
+    const role = document.getElementById('role').value;
     const specialtyField = document.getElementById('specialty-field');
     const extraFields = document.getElementById('doctor-extra-fields');
-    specialtyField.style.display = role === 'doctor' ? 'block' : 'none';
-    extraFields.style.display = role === 'doctor' ? 'block' : 'none';
+    specialtyField.style.display = role === 'Doctor' ? 'block' : 'none';
+    extraFields.style.display = role === 'Doctor' ? 'block' : 'none';
   }
 
   // 24/7 logic
@@ -232,9 +253,40 @@
     }
   }
 
-  // Initialize specialty field visibility
-  toggleSpecialty();
-  document.getElementById('specialty').addEventListener('change', toggleOtherSpecialty);
+  function togglePharmacyNameField() {
+    var role = document.getElementById('role').value;
+    var pharmacyField = document.getElementById('pharmacy-name-field');
+    pharmacyField.style.display = (role === 'Pharmacist') ? 'block' : 'none';
+  }
+
+  function toggleCertificateField() {
+    var role = document.getElementById('role').value;
+    var certField = document.getElementById('certificate-field');
+    var certInput = document.getElementById('certificate');
+    var certRequired = document.getElementById('certificate-required');
+    if (role === 'Doctor') {
+      certField.style.display = '';
+      certInput.required = true;
+      certRequired.style.display = '';
+    } else if (role === 'Pharmacist') {
+      certField.style.display = '';
+      certInput.required = false;
+      certRequired.style.display = 'none';
+    } else {
+      certField.style.display = 'none';
+      certInput.required = false;
+      certRequired.style.display = 'none';
+    }
+  }
+
+  // Initialize on page load
+  window.onload = function() {
+    toggleSpecialty();
+    togglePharmacyNameField();
+    toggleCertificateField();
+  };
+
+  document.getElementById('role').addEventListener('change', toggleCertificateField);
 </script>
 {% endblock %}
 {% endblock %} 

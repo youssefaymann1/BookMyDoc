@@ -25,6 +25,8 @@ def create_app():
     app.config['MAIL_USE_TLS'] = True
     app.config['MAIL_USERNAME'] = 'bookmydoc11@gmail.com'
     app.config['MAIL_PASSWORD'] = 'sjalamjygtofbrjh'
+    app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+    app.config['UPLOAD_FOLDER'] = 'website/static/uploads'
     db.init_app(app)
     mail.init_app(app)
     login_manager.init_app(app)
@@ -43,7 +45,17 @@ def create_app():
 
     @app.context_processor
     def inject_user():
-        return dict(user=session.get('user'))
+        user = session.get('user')
+        unread_pharma_count = 0
+        if user:
+            from .models import PharmaMessage
+            from . import db
+            if user['role'] == 'patient':
+                unread_pharma_count = db.session.query(PharmaMessage).filter_by(receiver_id=user['id'], is_from_patient=False, is_read=False).count()
+            elif user['role'] == 'pharmacist':
+                unread_pharma_count = db.session.query(PharmaMessage).filter_by(receiver_id=user['id'], is_from_patient=True, is_read=False).count()
+        print('CTX user:', user, 'unread_pharma_count:', unread_pharma_count)
+        return dict(user=user, unread_pharma_count=unread_pharma_count)
 
     return app
 

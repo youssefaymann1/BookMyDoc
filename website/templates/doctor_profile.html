@@ -2,156 +2,176 @@
 {% block title %}Doctor Profile{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <!-- Profile Header -->
-    <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
-        <div class="px-4 py-5 sm:px-6">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">
-                Doctor Profile
-            </h3>
-            <p class="mt-1 max-w-2xl text-sm text-gray-500">
-                Professional information and contact details
-            </p>
-        </div>
-        <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
-            {% if can_edit %}
-            <form method="POST" class="space-y-6" id="doctor-profile-form">
-                <div class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500">First Name</label>
-                        <input type="text" name="first_name" value="{{ doctor.user.first_name }}" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500">Last Name</label>
-                        <input type="text" name="last_name" value="{{ doctor.user.last_name }}" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-sm font-medium text-gray-500">Email address</label>
-                        <input type="email" name="email" value="{{ doctor.user.email }}" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500">Specialty</label>
-                        <input type="text" name="specialty" value="{{ doctor.specialty }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500">Clinic Address</label>
-                        <input type="text" name="clinic_address" value="{{ doctor.clinic_address }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500">Phone Number</label>
-                        <input type="text" name="phone_number" value="{{ doctor.phone_number }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500">Certification</label>
-                        <input type="text" name="certification" value="{{ doctor.certification }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    </div>
-                </div>
-                <!-- Editable Work Schedule -->
-                <div class="mt-8">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-2">Work Schedule</h3>
-                    <div id="work-schedule-list">
-                        {% for wt in doctor.work_times %}
-                        <div class="flex items-center space-x-2 mb-2 work-time-row">
-                            <select name="work_times[{{ loop.index0 }}][day_of_week]" class="border rounded p-1" required>
-                                {% for day in ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] %}
-                                <option value="{{ day.lower() }}" {% if wt.day_of_week|lower == day.lower() %}selected{% endif %}>{{ day }}</option>
-                                {% endfor %}
-                            </select>
-                            <input type="time" name="work_times[{{ loop.index0 }}][start_time]" value="{{ wt.start_time.strftime('%H:%M') }}" class="border rounded p-1" required>
-                            <span>-</span>
-                            <input type="time" name="work_times[{{ loop.index0 }}][end_time]" value="{{ wt.end_time.strftime('%H:%M') }}" class="border rounded p-1" required>
-                            <button type="button" class="remove-work-time text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    <button type="button" id="add-work-time" class="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"><i class="fas fa-plus"></i> Add Slot</button>
-                </div>
-                <div class="flex justify-end mt-6">
-                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Save Changes
-                    </button>
-                </div>
-            </form>
-            <script>
-                // Add/remove work time slots dynamically
-                let workTimeIndex = {{ doctor.work_times|length }};
-                document.getElementById('add-work-time').onclick = function() {
-                    const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-                    const row = document.createElement('div');
-                    row.className = 'flex items-center space-x-2 mb-2 work-time-row';
-                    row.innerHTML = `
-                        <select name="work_times[${workTimeIndex}][day_of_week]" class="border rounded p-1" required>
-                            ${days.map(day => `<option value="${day.toLowerCase()}">${day}</option>`).join('')}
-                        </select>
-                        <input type="time" name="work_times[${workTimeIndex}][start_time]" class="border rounded p-1" required>
-                        <span>-</span>
-                        <input type="time" name="work_times[${workTimeIndex}][end_time]" class="border rounded p-1" required>
-                        <button type="button" class="remove-work-time text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
-                    `;
-                    document.getElementById('work-schedule-list').appendChild(row);
-                    workTimeIndex++;
-                };
-                document.getElementById('work-schedule-list').addEventListener('click', function(e) {
-                    if (e.target.closest('.remove-work-time')) {
-                        e.target.closest('.work-time-row').remove();
-                    }
-                });
-            </script>
-            {% else %}
-            <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
-                <div class="sm:col-span-1">
-                    <dt class="text-sm font-medium text-gray-500">Full name</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ doctor.user.first_name }} {{ doctor.user.last_name }}</dd>
-                </div>
-                <div class="sm:col-span-1">
-                    <dt class="text-sm font-medium text-gray-500">Email address</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ doctor.user.email }}</dd>
-                </div>
-                <div class="sm:col-span-1">
-                    <dt class="text-sm font-medium text-gray-500">Specialty</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ doctor.specialty }}</dd>
-                </div>
-                <div class="sm:col-span-1">
-                    <dt class="text-sm font-medium text-gray-500">Clinic Address</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ doctor.clinic_address }}</dd>
-                </div>
-                <div class="sm:col-span-1">
-                    <dt class="text-sm font-medium text-gray-500">Phone Number</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ doctor.phone_number }}</dd>
-                </div>
-                <div class="sm:col-span-1">
-                    <dt class="text-sm font-medium text-gray-500">Certification</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ doctor.certification }}</dd>
-                </div>
-            </dl>
-            {% endif %}
-        </div>
+<div class="min-h-[80vh] bg-gradient-to-br from-blue-50 to-blue-100 py-8">
+  <div class="max-w-4xl mx-auto">
+    <!-- Profile Header Card -->
+    <div class="bg-white dark:bg-gray-900 shadow-xl rounded-2xl p-8 flex flex-col sm:flex-row items-center mb-10">
+      <div class="flex-shrink-0 mb-4 sm:mb-0 sm:mr-8">
+        <img src="{{ url_for('static', filename=doctor.user.photo_path) if doctor.user.photo_path else url_for('static', filename='images/default_avatar.png') }}"
+             alt="Profile Photo" class="h-36 w-36 rounded-full object-cover border-4 border-blue-200 shadow-lg">
+        {% if can_edit %}
+        <form method="POST" action="{{ url_for('views.upload_profile_photo', user_id=doctor.user.id) }}" enctype="multipart/form-data" class="mt-3 flex flex-col items-center">
+          <input type="file" name="photo" accept="image/*" class="text-sm text-gray-700 mb-2">
+          <button type="submit" class="px-4 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs font-semibold shadow">Upload Photo</button>
+        </form>
+        {% endif %}
+      </div>
+      <div class="flex-1 text-center sm:text-left">
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-1">{{ doctor.user.first_name }} {{ doctor.user.last_name }}</h2>
+        <p class="text-blue-600 dark:text-blue-400 font-medium mb-2">Doctor</p>
+        <p class="text-gray-500 dark:text-gray-300 mb-2"><i class="fas fa-envelope mr-1"></i> {{ doctor.user.email }}</p>
+        <p class="text-gray-400 dark:text-gray-300 text-sm">Professional information and contact details</p>
+      </div>
     </div>
-
-    <!-- Work Schedule (Read-only for others) -->
-    <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
-        <div class="px-4 py-5 sm:px-6">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">
-                Work Schedule
-            </h3>
-            <p class="mt-1 max-w-2xl text-sm text-gray-500">
-                Available hours for appointments
-            </p>
+    <div class="bg-white dark:bg-gray-900 shadow-lg rounded-2xl mb-10 p-6">
+      {% if can_edit %}
+      <form method="POST" class="space-y-6" id="doctor-profile-form">
+        <div class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+          <div>
+            <label class="block text-sm font-medium text-gray-500 dark:text-gray-300">First Name</label>
+            <input type="text" name="first_name" value="{{ doctor.user.first_name }}" required class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-500 dark:text-gray-300">Last Name</label>
+            <input type="text" name="last_name" value="{{ doctor.user.last_name }}" required class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-sm font-medium text-gray-500 dark:text-gray-300">Email address</label>
+            <input type="email" name="email" value="{{ doctor.user.email }}" required class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-500 dark:text-gray-300">Specialty</label>
+            <input type="text" name="specialty" value="{{ doctor.specialty }}" class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-500 dark:text-gray-300">Clinic Address</label>
+            <input type="text" name="clinic_address" value="{{ doctor.clinic_address }}" class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-500 dark:text-gray-300">Phone Number</label>
+            <input type="text" name="phone_number" value="{{ doctor.phone_number }}" class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-500 dark:text-gray-300">Certification</label>
+            <input type="text" name="certification" value="{{ doctor.certification }}" class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400">
+          </div>
         </div>
-        <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
-            {% if doctor.work_times %}
-                <ul>
-                    {% for wt in doctor.work_times %}
-                        <li class="mb-2">
-                            <span class="font-semibold capitalize">{{ wt.day_of_week }}</span>:
-                            {{ wt.start_time.strftime('%I:%M %p') }} - {{ wt.end_time.strftime('%I:%M %p') }}
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p class="text-gray-500">No work schedule set.</p>
-            {% endif %}
+        <!-- Editable Work Schedule -->
+        <div class="mt-8">
+          <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-2">Work Schedule</h3>
+          <div id="work-schedule-list">
+            {% for wt in doctor.work_times %}
+            <div class="flex items-center space-x-2 mb-2 work-time-row">
+              <select name="work_times[{{ loop.index0 }}][day_of_week]" class="border rounded-lg p-1" required>
+                {% for day in ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] %}
+                <option value="{{ day.lower() }}" {% if wt.day_of_week|lower == day.lower() %}selected{% endif %}>{{ day }}</option>
+                {% endfor %}
+              </select>
+              <input type="time" name="work_times[{{ loop.index0 }}][start_time]" value="{{ wt.start_time.strftime('%H:%M') }}" class="border rounded-lg p-1" required>
+              <span>-</span>
+              <input type="time" name="work_times[{{ loop.index0 }}][end_time]" value="{{ wt.end_time.strftime('%H:%M') }}" class="border rounded-lg p-1" required>
+              <button type="button" class="remove-work-time text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
+            </div>
+            {% endfor %}
+          </div>
+          <button type="button" id="add-work-time" class="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200"><i class="fas fa-plus"></i> Add Slot</button>
         </div>
+        <!-- Manage Appointment Prices -->
+        <div class="mt-8">
+          <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-2">Manage Appointment Prices</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% for apt_type in ['consultation', 'follow-up', 'checkup', 'emergency'] %}
+            <div class="flex items-center space-x-3 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+              <span class="w-32 capitalize text-gray-700 dark:text-gray-300">{{ apt_type.replace('-', ' ') }}</span>
+              <input type="number" step="0.01" min="0" name="price_{{ apt_type }}" value="{{ doctor.appointment_prices|selectattr('appointment_type', 'equalto', apt_type)|map(attribute='price')|first|default(0.0) }}" class="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required>
+              <span class="text-gray-500 dark:text-gray-400">EGP</span>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="flex justify-end mt-4">
+            <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+              <i class="fas fa-save mr-2"></i> Save Prices
+            </button>
+          </div>
+        </div>
+        <div class="flex justify-end mt-6">
+          <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            Save Changes
+          </button>
+        </div>
+      </form>
+      <script>
+        // Add/remove work time slots dynamically
+        let workTimeIndex = {{ doctor.work_times|length }};
+        document.getElementById('add-work-time').onclick = function() {
+          const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+          const row = document.createElement('div');
+          row.className = 'flex items-center space-x-2 mb-2 work-time-row';
+          row.innerHTML = `
+            <select name="work_times[${workTimeIndex}][day_of_week]" class="border rounded-lg p-1" required>
+              ${days.map(day => `<option value="${day.toLowerCase()}">${day}</option>`).join('')}
+            </select>
+            <input type="time" name="work_times[${workTimeIndex}][start_time]" class="border rounded-lg p-1" required>
+            <span>-</span>
+            <input type="time" name="work_times[${workTimeIndex}][end_time]" class="border rounded-lg p-1" required>
+            <button type="button" class="remove-work-time text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
+          `;
+          document.getElementById('work-schedule-list').appendChild(row);
+          workTimeIndex++;
+        };
+        document.getElementById('work-schedule-list').addEventListener('click', function(e) {
+          if (e.target.closest('.remove-work-time')) {
+            e.target.closest('.work-time-row').remove();
+          }
+        });
+      </script>
+      {% else %}
+      <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+        <div class="sm:col-span-1">
+          <dt class="text-sm font-medium text-gray-500">Full name</dt>
+          <dd class="mt-1 text-sm text-gray-900">{{ doctor.user.first_name }} {{ doctor.user.last_name }}</dd>
+        </div>
+        <div class="sm:col-span-1">
+          <dt class="text-sm font-medium text-gray-500">Email address</dt>
+          <dd class="mt-1 text-sm text-gray-900">{{ doctor.user.email }}</dd>
+        </div>
+        <div class="sm:col-span-1">
+          <dt class="text-sm font-medium text-gray-500">Specialty</dt>
+          <dd class="mt-1 text-sm text-gray-900">{{ doctor.specialty }}</dd>
+        </div>
+        <div class="sm:col-span-1">
+          <dt class="text-sm font-medium text-gray-500">Clinic Address</dt>
+          <dd class="mt-1 text-sm text-gray-900">{{ doctor.clinic_address }}</dd>
+        </div>
+        <div class="sm:col-span-1">
+          <dt class="text-sm font-medium text-gray-500">Phone Number</dt>
+          <dd class="mt-1 text-sm text-gray-900">{{ doctor.phone_number }}</dd>
+        </div>
+        <div class="sm:col-span-1">
+          <dt class="text-sm font-medium text-gray-500">Certification</dt>
+          <dd class="mt-1 text-sm text-gray-900">{{ doctor.certification }}</dd>
+        </div>
+      </dl>
+      {% endif %}
     </div>
+    <div class="bg-white dark:bg-gray-900 shadow-lg rounded-2xl mb-10 p-6">
+      <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-2">Work Schedule</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-300 mb-4">Available hours for appointments</p>
+      <div class="border-t border-gray-200 mt-4 pt-4">
+        {% if doctor.work_times %}
+          <ul>
+            {% for wt in doctor.work_times %}
+              <li class="mb-2">
+                <span class="font-semibold capitalize dark:text-white">{{ wt.day_of_week }}</span>:
+                <span class="dark:text-gray-200">{{ wt.start_time.strftime('%I:%M %p') }} - {{ wt.end_time.strftime('%I:%M %p') }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-gray-500">No work schedule set.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %} 

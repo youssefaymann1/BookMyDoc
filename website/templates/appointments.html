@@ -2,100 +2,93 @@
 {% block title %}Appointments{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-  <div class="sm:flex sm:items-center">
-    <div class="sm:flex-auto">
-      <h1 class="text-2xl font-semibold text-gray-900">Appointments</h1>
-      <p class="mt-2 text-sm text-gray-700">
-        A list of all your scheduled appointments and their current status.
-      </p>
-    </div>
-    {% if user.role == 'patient' %}
-    <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-      <a href="{{ url_for('views.book_appointment') }}" 
-         class="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto">
-        <i class="fas fa-plus mr-2"></i>
-        Book New Appointment
-      </a>
-    </div>
-    {% endif %}
-  </div>
-
-  <div class="mt-8 flex flex-col">
-    <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-      <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-          <table class="min-w-full divide-y divide-gray-300">
-            <thead class="bg-gray-50">
-              <tr>
-                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Date & Time</th>
-                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Doctor</th>
-                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Patient</th>
-                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
-                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Type</th>
-                <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                  <span class="sr-only">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 bg-white">
-              {% for appointment in appointments %}
-              <tr>
-                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                  {{ appointment.appointment_time.strftime('%B %d, %Y') }} at {{ appointment.appointment_time.strftime('%I:%M %p') }}
-                </td>
-                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                  {% if appointment.doctor and appointment.doctor.user %}
-                    Dr. {{ appointment.doctor.user.first_name }} {{ appointment.doctor.user.last_name }}
-                    <div class="text-xs text-gray-400">{{ appointment.doctor.specialty }}</div>
-                  {% else %}
-                    [Doctor Deleted]
-                  {% endif %}
-                </td>
-                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                  {{ appointment.patient.user.first_name }} {{ appointment.patient.user.last_name }}
-                  {% if user.role == 'doctor' and appointment.doctor.user.id == user.id %}
-                    <a href="{{ url_for('views.view_medical_data', patient_id=appointment.patient.id) }}" class="ml-2 inline-flex items-center px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-800 hover:bg-blue-200" title="View/Update Medical Data">
-                      <i class="fas fa-notes-medical mr-1"></i> Medical Data
-                    </a>
-                    <a href="{{ url_for('views.add_medical_record', patient_id=appointment.patient.id) }}" class="ml-2 inline-flex items-center px-2 py-1 text-xs font-medium rounded bg-green-100 text-green-800 hover:bg-green-200" title="Add Medical Data">
-                      <i class="fas fa-plus mr-1"></i> Add Data
-                    </a>
-                  {% endif %}
-                </td>
-                <td class="whitespace-nowrap px-3 py-4 text-sm">
-                  <span class="inline-flex rounded-full px-2 text-xs font-semibold leading-5 
-                    {% if appointment.status == 'scheduled' %}bg-green-100 text-green-800
-                    {% elif appointment.status == 'completed' %}bg-blue-100 text-blue-800
-                    {% elif appointment.status == 'cancelled' %}bg-red-100 text-red-800
-                    {% else %}bg-gray-100 text-gray-800{% endif %}">
-                    {{ appointment.status|capitalize }}
-                  </span>
-                </td>
-                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                  {{ appointment.type|capitalize }}
-                </td>
-                <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                  <div class="flex justify-end space-x-2">
-                    {% if user.role == 'doctor' and appointment.doctor.user.id == user.id and appointment.status == 'scheduled' %}
-                      <a href="{{ url_for('views.edit_appointment', appointment_id=appointment.id) }}" class="text-blue-600 hover:text-blue-900" title="Edit Appointment">
-                        <i class="fas fa-edit"></i>
-                      </a>
-                    {% endif %}
-                    {% if user.role == 'patient' and appointment.status == 'scheduled' %}
-                      <form action="{{ url_for('views.cancel_appointment', appointment_id=appointment.id) }}" method="POST" style="display:inline;">
-                        <button type="submit" class="text-red-600 hover:text-red-900" title="Cancel Appointment" onclick="return confirm('Are you sure you want to cancel this appointment?');">
-                          <i class="fas fa-times"></i>
-                        </button>
-                      </form>
-                    {% endif %}
-                  </div>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+<div class="min-h-[80vh] bg-gradient-to-br from-blue-50 to-blue-100 py-8">
+  <div class="max-w-7xl mx-auto">
+    <div class="bg-white dark:bg-gray-900 shadow-lg rounded-2xl mb-10 p-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+        <div>
+          <h2 class="text-3xl font-bold text-gray-900 mb-1">Appointments</h2>
+          <p class="text-lg text-gray-600">A list of all your scheduled appointments and their current status.</p>
         </div>
+        {% if user.role == 'patient' %}
+        <a href="{{ url_for('views.book_appointment') }}" 
+           class="inline-flex items-center justify-center rounded-lg border border-transparent bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150">
+          <i class="fas fa-plus mr-2"></i>
+          Book New Appointment
+        </a>
+        {% endif %}
+      </div>
+      <div class="overflow-x-auto rounded-lg shadow">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-base font-semibold text-gray-900 sm:pl-6">Date & Time</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-base font-semibold text-gray-900">Doctor</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-base font-semibold text-gray-900">Patient</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-base font-semibold text-gray-900">Status</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-base font-semibold text-gray-900">Type</th>
+              <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                <span class="sr-only">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 bg-white">
+            {% for appointment in appointments %}
+            <tr>
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-base font-medium text-gray-900 sm:pl-6">
+                {{ appointment.appointment_time.strftime('%B %d, %Y') }} at {{ appointment.appointment_time.strftime('%I:%M %p') }}
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-base text-gray-700">
+                {% if appointment.doctor and appointment.doctor.user %}
+                  Dr. {{ appointment.doctor.user.first_name }} {{ appointment.doctor.user.last_name }}
+                  <div class="text-xs text-gray-400">{{ appointment.doctor.specialty }}</div>
+                {% else %}
+                  [Doctor Deleted]
+                {% endif %}
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-base text-gray-700">
+                {{ appointment.patient.user.first_name }} {{ appointment.patient.user.last_name }}
+                {% if user.role == 'doctor' and appointment.doctor.user.id == user.id %}
+                  <a href="{{ url_for('views.view_medical_data', patient_id=appointment.patient.id) }}" class="ml-2 inline-flex items-center px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-800 hover:bg-blue-200" title="View/Update Medical Data">
+                    <i class="fas fa-notes-medical mr-1"></i> Medical Data
+                  </a>
+                  <a href="{{ url_for('views.add_medical_record', patient_id=appointment.patient.id) }}" class="ml-2 inline-flex items-center px-2 py-1 text-xs font-medium rounded bg-green-100 text-green-800 hover:bg-green-200" title="Add Medical Data">
+                    <i class="fas fa-plus mr-1"></i> Add Data
+                  </a>
+                {% endif %}
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-base">
+                <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold leading-5 
+                  {% if appointment.status == 'scheduled' %}bg-green-100 text-green-800
+                  {% elif appointment.status == 'completed' %}bg-blue-100 text-blue-800
+                  {% elif appointment.status == 'cancelled' %}bg-red-100 text-red-800
+                  {% else %}bg-gray-100 text-gray-800{% endif %}">
+                  {{ appointment.status|capitalize }}
+                </span>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-base text-gray-700">
+                {{ appointment.type|capitalize }}
+              </td>
+              <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-base font-medium sm:pr-6">
+                <div class="flex justify-end space-x-2">
+                  {% if user.role == 'doctor' and appointment.doctor.user.id == user.id and appointment.status == 'scheduled' %}
+                    <a href="{{ url_for('views.edit_appointment', appointment_id=appointment.id) }}" class="text-blue-600 hover:text-blue-900" title="Edit Appointment">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                  {% endif %}
+                  {% if user.role == 'patient' and appointment.status == 'scheduled' %}
+                    <form action="{{ url_for('views.cancel_appointment', appointment_id=appointment.id) }}" method="POST" style="display:inline;">
+                      <button type="submit" class="text-red-600 hover:text-red-900" title="Cancel Appointment" onclick="return confirm('Are you sure you want to cancel this appointment?');">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
   </div>

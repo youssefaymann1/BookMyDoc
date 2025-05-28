@@ -2,71 +2,90 @@
 {% block title %}Sign Up{% endblock %}
 
 {% block content %}
-<div class="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-  <div class="max-w-md w-full space-y-8">
-    <div class="text-center">
-      <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
-        Create your account
-      </h2>
-      <p class="mt-2 text-sm text-gray-600">
-        Join our healthcare community
-      </p>
-    </div>
-    <form class="mt-8 space-y-6" method="POST">
-      <div class="rounded-md shadow-sm -space-y-px">
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label for="firstName" class="sr-only">First name</label>
-            <input id="firstName" name="firstName" type="text" required 
-                   class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" 
-                   placeholder="First name">
-          </div>
-          <div>
-            <label for="lastName" class="sr-only">Last name</label>
-            <input id="lastName" name="lastName" type="text" required 
-                   class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" 
-                   placeholder="Last name">
-          </div>
-        </div>
-        <div class="mt-4">
-          <label for="email" class="sr-only">Email address</label>
-          <input id="email" name="email" type="email" required 
-                 class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" 
-                 placeholder="Email address">
-        </div>
-        <div class="mt-4">
-          <label for="password1" class="sr-only">Password</label>
-          <input id="password1" name="password1" type="password" required 
-                 class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" 
-                 placeholder="Password">
-        </div>
-        <div class="mt-4">
-          <label for="password2" class="sr-only">Confirm Password</label>
-          <input id="password2" name="password2" type="password" required 
-                 class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" 
-                 placeholder="Confirm password">
-        </div>
-      </div>
+<div class="min-h-[80vh] bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-900 py-12">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 dark:text-white">Create your account</h2>
+                <p class="mt-2 text-gray-600 dark:text-gray-400">Join BookMyDoc today</p>
+            </div>
 
-      <div>
-        <button type="submit" 
-                class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-          <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-            <i class="fas fa-user-plus"></i>
-          </span>
-          Create Account
-        </button>
-      </div>
-    </form>
+            <form method="POST" enctype="multipart/form-data" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="first_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">First name</label>
+                        <div class="mt-1">
+                            <input id="first_name" name="first_name" type="text" required 
+                                   class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm">
+                        </div>
+                    </div>
 
-    <div class="text-center mt-4">
-      <p class="text-sm text-gray-600">
-        Already have an account? 
-        <a href="{{ url_for('auth.login') }}" class="font-medium text-blue-600 hover:text-blue-500">
-          Sign in
-        </a>
-      </p>
+                    <div>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Last name</label>
+                        <div class="mt-1">
+                            <input id="last_name" name="last_name" type="text" required 
+                                   class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email address</label>
+                    <div class="mt-1">
+                        <input id="email" name="email" type="email" required 
+                               class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="password1" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+                    <div class="mt-1">
+                        <input id="password1" name="password1" type="password" required 
+                               class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="password2" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm password</label>
+                    <div class="mt-1">
+                        <input id="password2" name="password2" type="password" required 
+                               class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="national_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">National ID/Passport (Photo or Scan)</label>
+                    <div class="mt-1">
+                        <input id="national_id" name="national_id" type="file" accept=".jpg,.jpeg,.png,.pdf" required 
+                               class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="profile_photo" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Profile Photo</label>
+                    <div class="mt-1">
+                        <input id="profile_photo" name="profile_photo" type="file" accept=".jpg,.jpeg,.png" 
+                               class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white sm:text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" 
+                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Create Account
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Already have an account?
+                    <a href="{{ url_for('auth.login') }}" class="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300">
+                        Sign in
+                    </a>
+                </p>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 {% endblock %}

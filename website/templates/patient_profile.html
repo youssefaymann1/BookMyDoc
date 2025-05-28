@@ -2,98 +2,76 @@
 {% block title %}My Profile{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-  <!-- Profile Header -->
-  <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
-    <div class="px-4 py-5 sm:px-6">
-      <h3 class="text-lg leading-6 font-medium text-gray-900">
-        My Profile
-      </h3>
-      <p class="mt-1 max-w-2xl text-sm text-gray-500">
-        Personal details and medical information
-      </p>
-    </div>
-    <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
-      <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
-        <div class="sm:col-span-1">
-          <dt class="text-sm font-medium text-gray-500">Full name</dt>
-          <dd class="mt-1 text-sm text-gray-900">{{ patient.user.first_name }} {{ patient.user.last_name }}</dd>
-        </div>
-        <div class="sm:col-span-1">
-          <dt class="text-sm font-medium text-gray-500">Email address</dt>
-          <dd class="mt-1 text-sm text-gray-900">{{ patient.user.email }}</dd>
-        </div>
-        <div class="sm:col-span-1">
-          <dt class="text-sm font-medium text-gray-500">Role</dt>
-          <dd class="mt-1 text-sm text-gray-900">{{ patient.user.role|capitalize }}</dd>
-        </div>
-      </dl>
-    </div>
-  </div>
-
-  <!-- Medicines Section -->
-  <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
-    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
-      <div>
-        <h3 class="text-lg leading-6 font-medium text-gray-900">
-          My Medicines
-        </h3>
-        <p class="mt-1 max-w-2xl text-sm text-gray-500">
-          Track your current and past medications
-        </p>
+<div class="min-h-[80vh] bg-gradient-to-br from-blue-50 to-blue-100 py-8">
+  <div class="max-w-4xl mx-auto">
+    <!-- Profile Header Card -->
+    <div class="bg-white dark:bg-gray-900 shadow-xl rounded-2xl p-8 flex flex-col sm:flex-row items-center mb-10">
+      <div class="flex-shrink-0 mb-4 sm:mb-0 sm:mr-8">
+        {% if patient.user.photo_path %}
+          <img src="{{ url_for('static', filename=patient.user.photo_path) }}" alt="Profile Photo" class="h-36 w-36 rounded-full object-cover border-4 border-blue-200 shadow-lg">
+        {% else %}
+          <img src="{{ url_for('static', filename='images/default_avatar.png') }}" alt="Profile Photo" class="h-36 w-36 rounded-full object-cover border-4 border-blue-200 shadow-lg">
+        {% endif %}
+        <form method="POST" action="{{ url_for('views.upload_profile_photo', user_id=patient.user.id) }}" enctype="multipart/form-data" class="mt-3 flex flex-col items-center">
+          <input type="file" name="photo" accept="image/*" class="text-sm text-gray-700 mb-2">
+          <button type="submit" class="px-4 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs font-semibold shadow">Upload Photo</button>
+        </form>
       </div>
-      <button onclick="showAddMedicineModal()" 
-              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-        <i class="fas fa-plus mr-2"></i> Add Medicine
-      </button>
+      <div class="flex-1 text-center sm:text-left">
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-1">{{ patient.user.first_name }} {{ patient.user.last_name }}</h2>
+        <p class="text-blue-600 dark:text-blue-400 font-medium mb-2">Patient</p>
+        <p class="text-gray-500 dark:text-gray-300 mb-2"><i class="fas fa-envelope mr-1"></i> {{ patient.user.email }}</p>
+        <p class="text-gray-400 dark:text-gray-300 text-sm">Personal details and medical information</p>
+      </div>
     </div>
 
-    <div class="border-t border-gray-200">
-      <!-- Active Medicines -->
-      <div class="px-4 py-5 sm:px-6">
-        <h4 class="text-md font-semibold text-green-700 mb-4">Active Medicines</h4>
-        {% set active_medicines = patient.medicines|selectattr('is_active', 'equalto', true)|list %}
-        {% if active_medicines %}
-          <div class="space-y-4">
-            {% for medicine in active_medicines %}
-              <div class="bg-green-50 p-4 rounded-lg">
-                <div class="flex justify-between items-start">
+    <!-- Medicines Section -->
+    <div class="bg-white dark:bg-gray-900 shadow-lg rounded-2xl mb-10 p-6">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">My Medicines</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-300">Track your current and past medications</p>
+        </div>
+        <button onclick="showAddMedicineModal()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          <i class="fas fa-plus mr-2"></i> Add Medicine
+        </button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h4 class="text-md font-semibold text-green-700 dark:text-green-400 mb-2">Active Medicines</h4>
+          {% set active_medicines = patient.medicines|selectattr('is_active', 'equalto', true)|list %}
+          {% if active_medicines %}
+            <div class="space-y-4">
+              {% for medicine in active_medicines %}
+                <div class="bg-green-50 p-4 rounded-lg shadow flex justify-between items-start">
                   <div>
-                    <h5 class="text-lg font-medium text-green-800">{{ medicine.name }}</h5>
-                    <p class="text-sm text-green-600">Started: {{ medicine.start_date.strftime('%B %d, %Y') }}</p>
+                    <h5 class="text-lg font-medium text-green-800 dark:text-green-300">{{ medicine.name }}</h5>
+                    <p class="text-sm text-green-600 dark:text-green-400">Started: {{ medicine.start_date.strftime('%B %d, %Y') }}</p>
                     {% if medicine.notes %}
-                      <p class="mt-2 text-sm text-gray-700">{{ medicine.notes }}</p>
+                      <p class="mt-2 text-sm text-gray-700 dark:text-gray-200">{{ medicine.notes }}</p>
                     {% endif %}
                   </div>
-                  <div class="flex space-x-2">
-                    <button onclick="showEditMedicineModal({{ medicine.id }})" class="text-blue-600 hover:text-blue-800">
-                      <i class="fas fa-edit"></i>
-                    </button>
-                    <button onclick="moveToHistory({{ medicine.id }})" class="text-gray-600 hover:text-gray-800">
-                      <i class="fas fa-archive"></i>
-                    </button>
+                  <div class="flex flex-col space-y-2">
+                    <button onclick="showEditMedicineModal('{{ medicine.id }}')" class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit"></i></button>
+                    <button onclick="moveToHistory('{{ medicine.id }}')" class="text-gray-600 hover:text-gray-800"><i class="fas fa-archive"></i></button>
                   </div>
                 </div>
-              </div>
-            {% endfor %}
-          </div>
-        {% else %}
-          <p class="text-gray-500 text-center">No active medicines.</p>
-        {% endif %}
-      </div>
-
-      <!-- Medicine History -->
-      <div class="px-4 py-5 sm:px-6 border-t border-gray-200">
-        <h4 class="text-md font-semibold text-gray-700 mb-4">Medicine History</h4>
-        {% set history_medicines = patient.medicines|selectattr('is_active', 'equalto', false)|list %}
-        {% if history_medicines %}
-          <div class="space-y-4">
-            {% for medicine in history_medicines %}
-              <div class="bg-gray-50 p-4 rounded-lg">
-                <div class="flex justify-between items-start">
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-gray-500 text-center">No active medicines.</p>
+          {% endif %}
+        </div>
+        <div>
+          <h4 class="text-md font-semibold text-gray-700 dark:text-gray-300 mb-2">Medicine History</h4>
+          {% set history_medicines = patient.medicines|selectattr('is_active', 'equalto', false)|list %}
+          {% if history_medicines %}
+            <div class="space-y-4">
+              {% for medicine in history_medicines %}
+                <div class="bg-gray-50 p-4 rounded-lg shadow flex justify-between items-start">
                   <div>
-                    <h5 class="text-lg font-medium text-gray-800">{{ medicine.name }}</h5>
-                    <p class="text-sm text-gray-600">
+                    <h5 class="text-lg font-medium text-gray-800 dark:text-gray-200">{{ medicine.name }}</h5>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
                       {{ medicine.start_date.strftime('%B %d, %Y') }} - 
                       {% if medicine.end_date %}
                         {{ medicine.end_date.strftime('%B %d, %Y') }}
@@ -102,173 +80,85 @@
                       {% endif %}
                     </p>
                     {% if medicine.notes %}
-                      <p class="mt-2 text-sm text-gray-700">{{ medicine.notes }}</p>
+                      <p class="mt-2 text-sm text-gray-700 dark:text-gray-200">{{ medicine.notes }}</p>
                     {% endif %}
                   </div>
-                  <div class="flex space-x-2">
-                    <button onclick="showEditMedicineModal({{ medicine.id }})" class="text-blue-600 hover:text-blue-800">
-                      <i class="fas fa-edit"></i>
-                    </button>
-                    <button onclick="reactivateMedicine({{ medicine.id }})" class="text-green-600 hover:text-green-800">
-                      <i class="fas fa-redo"></i>
-                    </button>
+                  <div class="flex flex-col space-y-2">
+                    <button onclick="showEditMedicineModal('{{ medicine.id }}')" class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit"></i></button>
+                    <button onclick="reactivateMedicine('{{ medicine.id }}')" class="text-green-600 hover:text-green-800"><i class="fas fa-redo"></i></button>
                   </div>
                 </div>
-              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-gray-500 text-center">No medicine history.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Upcoming Appointments -->
+    <div class="bg-white dark:bg-gray-900 shadow-lg rounded-2xl mb-10 p-6">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Upcoming Appointments</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-300">Your scheduled appointments</p>
+        </div>
+        <a href="{{ url_for('views.book_appointment') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          <i class="fas fa-plus mr-2"></i> Book New Appointment
+        </a>
+      </div>
+      <div class="border-t border-gray-200 mt-4">
+        {% if appointments %}
+          <ul class="divide-y divide-gray-200">
+            {% for appointment in appointments %}
+              <li class="py-4 flex items-center justify-between">
+                <div>
+                  <div class="font-medium text-gray-900">{{ appointment.doctor_name }}</div>
+                  <div class="text-gray-500 text-sm">{{ appointment.appointment_time.strftime('%B %d, %Y') }} at {{ appointment.appointment_time.strftime('%I:%M %p') }}</div>
+                </div>
+                <a href="{{ url_for('views.view_appointments') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View</a>
+              </li>
             {% endfor %}
-          </div>
+          </ul>
         {% else %}
-          <p class="text-gray-500 text-center">No medicine history.</p>
+          <p class="text-gray-500 text-center py-4">No upcoming appointments.</p>
         {% endif %}
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Add/Edit Medicine Modal -->
-  <div id="medicineModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden">
-    <div class="flex items-center justify-center min-h-screen p-4">
-      <div class="bg-white rounded-lg max-w-md w-full">
-        <div class="px-4 py-5 sm:p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4" id="modalTitle">Add Medicine</h3>
-          <form id="medicineForm" class="space-y-4">
-            <input type="hidden" id="medicineId" name="medicine_id">
-            <div>
-              <label for="medicineName" class="block text-sm font-medium text-gray-700">Medicine Name</label>
-              <input type="text" name="name" id="medicineName" required
-                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-            </div>
-            <div>
-              <label for="medicineNotes" class="block text-sm font-medium text-gray-700">Notes</label>
-              <textarea name="notes" id="medicineNotes" rows="3"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>
-            </div>
-            <div class="flex justify-end space-x-3">
-              <button type="button" onclick="hideMedicineModal()"
-                      class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                Cancel
-              </button>
-              <button type="submit"
-                      class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                Save
-              </button>
-            </div>
-          </form>
-        </div>
+<!-- Add/Edit Medicine Modal -->
+<div id="medicineModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 dark:bg-opacity-80 hidden">
+  <div class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white dark:bg-gray-900 rounded-lg max-w-md w-full">
+      <div class="px-4 py-5 sm:p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4" id="modalTitle">Add Medicine</h3>
+        <form id="medicineForm" class="space-y-4">
+          <input type="hidden" id="medicineId" name="medicine_id">
+          <div>
+            <label for="medicineName" class="block text-sm font-medium text-gray-700">Medicine Name</label>
+            <input type="text" name="name" id="medicineName" required
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+          </div>
+          <div>
+            <label for="medicineNotes" class="block text-sm font-medium text-gray-700">Notes</label>
+            <textarea name="notes" id="medicineNotes" rows="3"
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>
+          </div>
+          <div class="flex justify-end space-x-3">
+            <button type="button" onclick="hideMedicineModal()"
+                    class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+              Cancel
+            </button>
+            <button type="submit"
+                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+              Save
+            </button>
+          </div>
+        </form>
       </div>
-    </div>
-  </div>
-
-  <!-- Upcoming Appointments -->
-  <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
-    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
-      <div>
-        <h3 class="text-lg leading-6 font-medium text-gray-900">
-          Upcoming Appointments
-        </h3>
-        <p class="mt-1 max-w-2xl text-sm text-gray-500">
-          Your scheduled appointments
-        </p>
-      </div>
-      <a href="{{ url_for('views.book_appointment') }}" 
-         class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-        <i class="fas fa-plus mr-2"></i> Book New Appointment
-      </a>
-    </div>
-    <div class="border-t border-gray-200">
-      {% if appointments %}
-        <ul class="divide-y divide-gray-200">
-          {% for appointment in appointments %}
-            {% if appointment.status == 'scheduled' %}
-              <li class="px-4 py-4 sm:px-6">
-                <div class="flex items-center justify-between">
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-blue-600 truncate">
-                      {% if appointment.doctor and appointment.doctor.user %}
-                        Appointment with Dr. {{ appointment.doctor.user.first_name }} {{ appointment.doctor.user.last_name }}
-                      {% else %}
-                        Appointment with [Doctor Deleted]
-                      {% endif %}
-                    </p>
-                    <p class="mt-1 text-sm text-gray-500">
-                      {{ appointment.appointment_time.strftime('%B %d, %Y at %I:%M %p') }}
-                    </p>
-                    <p class="mt-1 text-sm text-gray-500">
-                      Type: {{ appointment.type|capitalize }}
-                    </p>
-                    {% if appointment.reason %}
-                      <p class="mt-1 text-sm text-gray-500">
-                        Reason: {{ appointment.reason }}
-                      </p>
-                    {% endif %}
-                  </div>
-                  <div class="ml-4 flex-shrink-0">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      {{ appointment.status|capitalize }}
-                    </span>
-                  </div>
-                </div>
-              </li>
-            {% endif %}
-          {% endfor %}
-        </ul>
-      {% else %}
-        <div class="px-4 py-5 sm:px-6">
-          <p class="text-gray-500 text-center">No upcoming appointments.</p>
-        </div>
-      {% endif %}
-    </div>
-  </div>
-
-  <!-- Medical Records -->
-  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-    <div class="px-4 py-5 sm:px-6">
-      <h3 class="text-lg leading-6 font-medium text-gray-900">
-        Medical Records
-      </h3>
-      <p class="mt-1 max-w-2xl text-sm text-gray-500">
-        Your medical history and records
-      </p>
-    </div>
-    <div class="border-t border-gray-200">
-      {% if medical_records %}
-        <ul class="divide-y divide-gray-200">
-          {% for record in medical_records %}
-            <li class="px-4 py-4 sm:px-6">
-              <div class="flex items-center justify-between">
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-medium text-blue-600 truncate">
-                    {{ record.title }}
-                  </p>
-                  {% if record.doctor and record.doctor.user %}
-                    <p class="mt-1 text-sm font-semibold text-blue-800">
-                      Added by: Dr. {{ record.doctor.user.first_name }} {{ record.doctor.user.last_name }}
-                    </p>
-                  {% endif %}
-                  <p class="mt-1 text-sm text-gray-500">
-                    Type: {{ record.type|capitalize }}
-                  </p>
-                  <p class="mt-1 text-sm text-gray-500">
-                    Date: {{ record.date.strftime('%B %d, %Y') }}
-                  </p>
-                  <p class="mt-2 text-sm text-gray-700">
-                    {{ record.description }}
-                  </p>
-                  {% if record.prescription %}
-                    <div class="mt-2">
-                      <p class="text-sm font-medium text-gray-900">Prescription:</p>
-                      <p class="mt-1 text-sm text-gray-700">{{ record.prescription }}</p>
-                    </div>
-                  {% endif %}
-                </div>
-              </div>
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <div class="px-4 py-5 sm:px-6">
-          <p class="text-gray-500 text-center">No medical records found.</p>
-        </div>
-      {% endif %}
     </div>
   </div>
 </div>

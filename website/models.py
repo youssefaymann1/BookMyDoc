@@ -25,6 +25,8 @@ class User(db.Model, UserMixin):
     first_name = db.Column(db.String(150))
     last_name = db.Column(db.String(150))
     role = db.Column(db.String(50), default=UserRole.PATIENT.value)
+    photo_path = db.Column(db.String(255), nullable=True)  # New: profile photo
+    id_photo_path = db.Column(db.String(255), nullable=True)  # National ID or passport photo
     notes = db.relationship('Note')
     doctor_profile = db.relationship('Doctor', uselist=False, back_populates='user')
     pharmacist_profile = db.relationship('Pharmacist', uselist=False, back_populates='user')
@@ -38,6 +40,7 @@ class Doctor(db.Model):
     clinic_address = db.Column(db.String(255))  # New: Clinic address
     certification = db.Column(db.Text)          # New: Certification
     phone_number = db.Column(db.String(50))     # New: Phone number
+    certificate_path = db.Column(db.String(255), nullable=True)  # Certificate file path
     user = db.relationship('User', back_populates='doctor_profile')
     work_times = db.relationship('WorkTime', back_populates='doctor')
     appointments = db.relationship('Appointment', back_populates='doctor')
@@ -49,6 +52,8 @@ class Pharmacist(db.Model):
     user = db.relationship('User', back_populates='pharmacist_profile')
     work_times = db.relationship('WorkTime', back_populates='pharmacist')
     appointments = db.relationship('Appointment', back_populates='pharmacist')
+    pharmacy_name = db.Column(db.String(255), nullable=True)  # New: pharmacy name
+    certificate_path = db.Column(db.String(255), nullable=True)  # Certificate file path
 
 
 class Patient(db.Model):
@@ -97,6 +102,7 @@ class MedicalRecord(db.Model):
     description = db.Column(db.Text)
     prescription = db.Column(db.Text)
     date = db.Column(db.DateTime(timezone=True), default=func.now())
+    file_path = db.Column(db.String(255), nullable=True)  # New: file upload support
 
     patient = db.relationship('Patient', back_populates='medical_records')
     doctor = db.relationship('Doctor', back_populates='medical_records')
@@ -131,3 +137,11 @@ class Medicine(db.Model):
 
 # Add the relationship to Patient after Medicine is defined
 Patient.medicines = db.relationship('Medicine', back_populates='patient', order_by='Medicine.start_date.desc()')
+
+class DoctorAppointmentPrice(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
+    appointment_type = db.Column(db.String(50), nullable=False)  # consultation, follow-up, checkup, emergency
+    price = db.Column(db.Float, nullable=False, default=0.0)
+    doctor = db.relationship('Doctor', backref='appointment_prices')
+    __table_args__ = (db.UniqueConstraint('doctor_id', 'appointment_type', name='_doctor_type_uc'),)

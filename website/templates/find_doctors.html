@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Find Doctors{% endblock %}
+{% block content %}
+<div class="min-h-[70vh] bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-900 py-12">
+    <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-10">
+            <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Find a Doctor</h2>
+            <p class="text-lg text-gray-600 dark:text-gray-400">Search and connect with top healthcare professionals on BookMyDoc.</p>
+        </div>
+        <div class="mb-8 flex justify-center">
+            <input type="text" placeholder="Search by name, specialty, or location..."
+                class="w-full max-w-xl px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition" />
+        </div>
+        <!-- Placeholder for doctor cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8" id="doctor-list">
+            {% for doctor in doctors if doctor.user %}
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6 flex items-center space-x-4">
+                <div class="h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                    <i class="fas fa-user-md text-3xl text-blue-600 dark:text-blue-400"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Dr. {{ doctor.user.first_name }} {{ doctor.user.last_name }}</h3>
+                    <p class="text-gray-600 dark:text-gray-400">{{ doctor.specialty }}</p>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">{{ doctor.clinic_address }}</p>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-span-2 text-center text-gray-500 dark:text-gray-400">No doctors found.</div>
+            {% endfor %}
+        </div>
+        <div class="mt-10 text-center text-gray-500 dark:text-gray-400">
+            <p>More doctors coming soon...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+  const searchInput = document.querySelector('input[placeholder^="Search"]');
+  const doctorCards = document.querySelectorAll('#doctor-list > div.bg-white, #doctor-list > div.dark\\:bg-gray-800');
+
+  searchInput.addEventListener('input', function() {
+    const query = this.value.trim().toLowerCase();
+    let anyVisible = false;
+    doctorCards.forEach(card => {
+      const text = card.textContent.toLowerCase();
+      if (text.includes(query)) {
+        card.style.display = '';
+        anyVisible = true;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+    // Show/hide 'No doctors found' message
+    const noDoctorsMsg = document.querySelector('#doctor-list > .col-span-2');
+    if (noDoctorsMsg) {
+      noDoctorsMsg.style.display = anyVisible ? 'none' : '';
+    }
+  });
+</script>
+{% endblock %} 

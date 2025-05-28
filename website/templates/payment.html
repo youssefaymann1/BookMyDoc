@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% block title %}Payment{% endblock %}
+{% block content %}
+<div class="min-h-[80vh] bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-900 py-12 flex items-center justify-center">
+  <div class="bg-white dark:bg-gray-900 shadow-2xl rounded-3xl p-10 max-w-lg w-full relative">
+    <!-- Progress Stepper -->
+    <div class="flex items-center justify-center mb-8">
+      <div class="flex items-center">
+        <div class="flex items-center text-blue-600">
+          <span class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900 font-bold text-lg">1</span>
+          <span class="ml-2 font-semibold">Appointment</span>
+        </div>
+        <div class="mx-4 h-1 w-8 bg-blue-200 dark:bg-blue-800 rounded"></div>
+        <div class="flex items-center text-blue-600">
+          <span class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-lg">2</span>
+          <span class="ml-2 font-semibold">Payment</span>
+        </div>
+      </div>
+    </div>
+    <!-- Appointment Summary -->
+    <div class="mb-8 bg-blue-50 dark:bg-blue-950 rounded-xl p-5 flex flex-col items-center shadow-sm">
+      <div class="text-base text-gray-700 dark:text-gray-300 mb-1">Doctor:</div>
+      <div class="font-semibold text-lg text-gray-900 dark:text-white mb-1">Dr. {{ doctor.user.first_name }} {{ doctor.user.last_name }}</div>
+      <div class="text-base text-gray-700 dark:text-gray-300 mb-1">Type: <span class="capitalize">{{ apt_type.replace('-', ' ') }}</span></div>
+      <div class="text-xl font-bold text-blue-700 dark:text-blue-400 mt-2">EGP {{ '%.2f'|format(price) }}</div>
+    </div>
+    <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white mb-6 text-center tracking-tight">Secure Payment</h2>
+    <form method="POST" class="space-y-6" id="payment-form" novalidate autocomplete="off">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Card Number</label>
+        <input type="text" name="card_number" id="card-number" maxlength="19" placeholder="1234 5678 9012 3456" required autocomplete="cc-number"
+          class="mt-1 block w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg">
+        <p id="card-number-error" class="mt-1 text-xs text-red-600 hidden">Please enter a valid 16-digit card number.</p>
+      </div>
+      <div class="flex space-x-4">
+        <div class="flex-1">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expiry</label>
+          <input type="text" name="expiry" id="expiry" maxlength="5" placeholder="MM/YY" required autocomplete="cc-exp"
+            class="mt-1 block w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg">
+          <p id="expiry-error" class="mt-1 text-xs text-red-600 hidden">Enter a valid expiry (MM/YY).</p>
+        </div>
+        <div class="flex-1">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">CVV</label>
+          <input type="text" name="cvv" id="cvv" maxlength="3" placeholder="123" required autocomplete="cc-csc"
+            class="mt-1 block w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg">
+          <p id="cvv-error" class="mt-1 text-xs text-red-600 hidden">Enter a valid 3-digit CVV.</p>
+        </div>
+      </div>
+      <button type="submit" id="pay-btn" class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150">
+        <span id="pay-btn-text"><i class="fas fa-credit-card mr-2"></i> Pay EGP {{ '%.2f'|format(price) }}</span>
+        <svg id="pay-btn-spinner" class="hidden animate-spin ml-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+      </button>
+    </form>
+    <script>
+      // Card Number Mask & Validation
+      const cardInput = document.getElementById('card-number');
+      const cardError = document.getElementById('card-number-error');
+      cardInput.addEventListener('input', function(e) {
+        let value = this.value.replace(/\D/g, '').slice(0, 16);
+        let formatted = value.replace(/(.{4})/g, '$1 ').trim();
+        this.value = formatted;
+        if (value.length === 16) {
+          this.classList.remove('border-red-500');
+          cardError.classList.add('hidden');
+        } else {
+          this.classList.add('border-red-500');
+          cardError.classList.remove('hidden');
+        }
+      });
+      cardInput.addEventListener('blur', function() {
+        let value = this.value.replace(/\D/g, '');
+        if (value.length !== 16) {
+          this.classList.add('border-red-500');
+          cardError.classList.remove('hidden');
+        } else {
+          this.classList.remove('border-red-500');
+          cardError.classList.add('hidden');
+        }
+      });
+      // Expiry Mask & Validation
+      const expiryInput = document.getElementById('expiry');
+      const expiryError = document.getElementById('expiry-error');
+      expiryInput.addEventListener('input', function(e) {
+        let value = this.value.replace(/[^\d]/g, '');
+        if (value.length > 4) value = value.slice(0, 4);
+        if (value.length > 2) value = value.slice(0,2) + '/' + value.slice(2);
+        this.value = value;
+        // Validate MM/YY
+        const regex = /^(0[1-9]|1[0-2])\/(\d{2})$/;
+        if (regex.test(this.value)) {
+          this.classList.remove('border-red-500');
+          expiryError.classList.add('hidden');
+        } else {
+          this.classList.add('border-red-500');
+          expiryError.classList.remove('hidden');
+        }
+      });
+      expiryInput.addEventListener('blur', function() {
+        const regex = /^(0[1-9]|1[0-2])\/(\d{2})$/;
+        if (!regex.test(this.value)) {
+          this.classList.add('border-red-500');
+          expiryError.classList.remove('hidden');
+        } else {
+          this.classList.remove('border-red-500');
+          expiryError.classList.add('hidden');
+        }
+      });
+      // CVV Mask & Validation
+      const cvvInput = document.getElementById('cvv');
+      const cvvError = document.getElementById('cvv-error');
+      cvvInput.addEventListener('input', function(e) {
+        let value = this.value.replace(/\D/g, '').slice(0, 3);
+        this.value = value;
+        if (value.length === 3) {
+          this.classList.remove('border-red-500');
+          cvvError.classList.add('hidden');
+        } else {
+          this.classList.add('border-red-500');
+          cvvError.classList.remove('hidden');
+        }
+      });
+      cvvInput.addEventListener('blur', function() {
+        if (this.value.length !== 3) {
+          this.classList.add('border-red-500');
+          cvvError.classList.remove('hidden');
+        } else {
+          this.classList.remove('border-red-500');
+          cvvError.classList.add('hidden');
+        }
+      });
+      // Form Validation on Submit + Spinner
+      document.getElementById('payment-form').addEventListener('submit', function(e) {
+        let valid = true;
+        if (cardInput.value.replace(/\D/g, '').length !== 16) {
+          cardInput.classList.add('border-red-500');
+          cardError.classList.remove('hidden');
+          valid = false;
+        }
+        const expiryRegex = /^(0[1-9]|1[0-2])\/(\d{2})$/;
+        if (!expiryRegex.test(expiryInput.value)) {
+          expiryInput.classList.add('border-red-500');
+          expiryError.classList.remove('hidden');
+          valid = false;
+        }
+        if (cvvInput.value.length !== 3) {
+          cvvInput.classList.add('border-red-500');
+          cvvError.classList.remove('hidden');
+          valid = false;
+        }
+        if (!valid) {
+          e.preventDefault();
+        } else {
+          // Show spinner
+          document.getElementById('pay-btn-text').classList.add('hidden');
+          document.getElementById('pay-btn-spinner').classList.remove('hidden');
+        }
+      });
+    </script>
+  </div>
+</div>
+{% endblock %} 

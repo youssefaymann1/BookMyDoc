@@ -2,121 +2,128 @@
 {% block title %}Book Appointment{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-  <div class="bg-white shadow sm:rounded-lg">
-    <div class="px-4 py-5 sm:p-6">
-      <h3 class="text-lg leading-6 font-medium text-gray-900">Book a New Appointment</h3>
-      <div class="mt-2 max-w-xl text-sm text-gray-500">
-        <p>Fill in the details below to schedule your appointment with a healthcare professional.</p>
+<div class="min-h-[80vh] bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-900 py-12 flex items-center justify-center">
+  <div class="bg-white dark:bg-gray-900 shadow-2xl rounded-3xl p-10 max-w-2xl w-full relative">
+    <!-- Progress Stepper -->
+    <div class="flex items-center justify-center mb-8">
+      <div class="flex items-center">
+        <div class="flex items-center text-blue-600">
+          <span class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-lg">1</span>
+          <span class="ml-2 font-semibold">Appointment</span>
+        </div>
+        <div class="mx-4 h-1 w-8 bg-blue-200 dark:bg-blue-800 rounded"></div>
+        <div class="flex items-center text-blue-600">
+          <span class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900 font-bold text-lg">2</span>
+          <span class="ml-2 font-semibold">Payment</span>
+        </div>
       </div>
-      <form method="POST" class="mt-5 space-y-6" onsubmit="return validateBookingForm();">
-        <!-- Doctor Selection -->
-        <div class="flex items-center space-x-2">
-          <div class="flex-1">
-            <label for="doctor" class="block text-sm font-medium text-gray-700">Select Doctor <span class="text-red-600">*</span></label>
-            <select id="doctor" name="doctor" required
-                    class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-              <option value="" disabled selected>Choose a doctor</option>
-              {% for doctor in doctors %}
-              <option value="{{ doctor.id }}" 
-                data-name="{{ doctor.name }}"
-                data-specialty="{{ doctor.specialty }}"
-                data-phone="{{ doctor.phone_number|default('N/A') }}"
-                data-clinic="{{ doctor.clinic_address|default('N/A') }}"
-                data-certification="{{ doctor.certification|default('N/A') }}"
-                data-schedule='{{ doctor.schedule|tojson }}'>
-                Dr. {{ doctor.name }} - {{ doctor.specialty }}
-              </option>
-              {% endfor %}
-            </select>
-          </div>
-          <!-- Doctor Profile Link Button -->
-          <a href="#" id="doctor-profile-link" class="inline-flex items-center px-3 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none" title="View Doctor Profile" style="display: none;">
-            <i class="fas fa-user-md mr-1"></i> Profile
-          </a>
-        </div>
-
-        <!-- Doctor Profile Modal -->
-        <div id="doctor-profile-modal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-40 flex items-center justify-center">
-          <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
-            <button type="button" id="close-profile-modal" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
-            <h4 class="text-lg font-semibold mb-2" id="modal-doctor-name"></h4>
-            <p class="mb-1"><span class="font-medium">Specialty:</span> <span id="modal-doctor-specialty"></span></p>
-            <p class="mb-1"><span class="font-medium">Phone:</span> <span id="modal-doctor-phone"></span></p>
-            <p class="mb-1"><span class="font-medium">Clinic Address:</span> <span id="modal-doctor-clinic"></span></p>
-            <p class="mb-1"><span class="font-medium">Certification:</span> <span id="modal-doctor-certification"></span></p>
-          </div>
-        </div>
-
-        <!-- Doctor's Schedule Display -->
-        <div id="doctor-schedule" class="hidden">
-          <h4 class="text-sm font-medium text-gray-700 mb-2">Doctor's Weekly Schedule</h4>
-          <div class="grid grid-cols-7 gap-2 text-center text-xs">
-            <div class="font-medium text-gray-500">Mon</div>
-            <div class="font-medium text-gray-500">Tue</div>
-            <div class="font-medium text-gray-500">Wed</div>
-            <div class="font-medium text-gray-500">Thu</div>
-            <div class="font-medium text-gray-500">Fri</div>
-            <div class="font-medium text-gray-500">Sat</div>
-            <div class="font-medium text-gray-500">Sun</div>
-            <div id="mon-hours" class="p-2 bg-gray-50 rounded"></div>
-            <div id="tue-hours" class="p-2 bg-gray-50 rounded"></div>
-            <div id="wed-hours" class="p-2 bg-gray-50 rounded"></div>
-            <div id="thu-hours" class="p-2 bg-gray-50 rounded"></div>
-            <div id="fri-hours" class="p-2 bg-gray-50 rounded"></div>
-            <div id="sat-hours" class="p-2 bg-gray-50 rounded"></div>
-            <div id="sun-hours" class="p-2 bg-gray-50 rounded"></div>
-          </div>
-        </div>
-
-        <!-- Appointment Type -->
-        <div>
-          <label for="type" class="block text-sm font-medium text-gray-700">Appointment Type <span class="text-red-600">*</span></label>
-          <select id="type" name="type" required
-                  class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-            <option value="" disabled selected>Select appointment type</option>
-            <option value="consultation">Consultation</option>
-            <option value="follow-up">Follow-up</option>
-            <option value="checkup">Regular Checkup</option>
-            <option value="emergency">Emergency</option>
+    </div>
+    <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white mb-2 text-center tracking-tight">Book a New Appointment</h2>
+    <p class="text-lg text-gray-600 dark:text-gray-300 mb-8 text-center">Fill in the details below to schedule your appointment with a healthcare professional.</p>
+    <form method="POST" class="space-y-8" onsubmit="return validateBookingForm();">
+      <!-- Doctor Selection -->
+      <div class="flex flex-col md:flex-row items-center gap-4">
+        <div class="flex-1 w-full">
+          <label for="doctor" class="block text-base font-medium text-gray-700 dark:text-gray-300 mb-1">Select Doctor <span class="text-red-600">*</span></label>
+          <select id="doctor" name="doctor" required
+                  class="mt-1 block w-full pl-3 pr-10 py-3 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400">
+            <option value="" disabled selected>Choose a doctor</option>
+            {% for doctor in doctors %}
+            <option value="{{ doctor.id }}" 
+              data-name="{{ doctor.name }}"
+              data-specialty="{{ doctor.specialty }}"
+              data-phone="{{ doctor.phone_number|default('N/A') }}"
+              data-clinic="{{ doctor.clinic_address|default('N/A') }}"
+              data-certification="{{ doctor.certification|default('N/A') }}"
+              data-schedule='{{ doctor.schedule|tojson }}'>
+              Dr. {{ doctor.name }} - {{ doctor.specialty }}
+            </option>
+            {% endfor %}
           </select>
         </div>
+        <a href="#" id="doctor-profile-link" class="inline-flex items-center px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none transition duration-150 shadow-sm" title="View Doctor Profile" style="display: none;">
+          <i class="fas fa-user-md mr-2"></i> Profile
+        </a>
+      </div>
 
-        <!-- Date Selection (Button Grid) -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Select Date <span class="text-red-600">*</span></label>
-          <div id="available-days" class="mt-2 grid grid-cols-7 gap-2"></div>
-          <input type="hidden" id="selected-date" name="date" required>
+      <!-- Doctor Profile Modal -->
+      <div id="doctor-profile-modal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-40 flex items-center justify-center">
+        <div class="bg-white rounded-2xl shadow-lg max-w-md w-full p-6 relative">
+          <button type="button" id="close-profile-modal" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
+          <h4 class="text-xl font-semibold mb-2" id="modal-doctor-name"></h4>
+          <p class="mb-1"><span class="font-medium">Specialty:</span> <span id="modal-doctor-specialty"></span></p>
+          <p class="mb-1"><span class="font-medium">Phone:</span> <span id="modal-doctor-phone"></span></p>
+          <p class="mb-1"><span class="font-medium">Clinic Address:</span> <span id="modal-doctor-clinic"></span></p>
+          <p class="mb-1"><span class="font-medium">Certification:</span> <span id="modal-doctor-certification"></span></p>
         </div>
+      </div>
 
-        <!-- Time Slot Selection -->
-        <div id="time-selection" class="hidden">
-          <label class="block text-sm font-medium text-gray-700">Select Time Slot <span class="text-red-600">*</span></label>
-          <div id="time-slots" class="grid grid-cols-4 gap-2 mt-2"></div>
-          <input type="hidden" id="selected-time" name="selected_time" required>
-          <div id="time-message" class="text-xs text-gray-500 mt-1"></div>
+      <!-- Doctor's Schedule Display -->
+      <div id="doctor-schedule" class="hidden">
+        <h4 class="text-base font-medium text-gray-700 mb-2">Doctor's Weekly Schedule</h4>
+        <div class="grid grid-cols-7 gap-2 text-center text-xs">
+          <div class="font-medium text-gray-500">Mon</div>
+          <div class="font-medium text-gray-500">Tue</div>
+          <div class="font-medium text-gray-500">Wed</div>
+          <div class="font-medium text-gray-500">Thu</div>
+          <div class="font-medium text-gray-500">Fri</div>
+          <div class="font-medium text-gray-500">Sat</div>
+          <div class="font-medium text-gray-500">Sun</div>
+          <div id="mon-hours" class="p-2 bg-gray-50 rounded"></div>
+          <div id="tue-hours" class="p-2 bg-gray-50 rounded"></div>
+          <div id="wed-hours" class="p-2 bg-gray-50 rounded"></div>
+          <div id="thu-hours" class="p-2 bg-gray-50 rounded"></div>
+          <div id="fri-hours" class="p-2 bg-gray-50 rounded"></div>
+          <div id="sat-hours" class="p-2 bg-gray-50 rounded"></div>
+          <div id="sun-hours" class="p-2 bg-gray-50 rounded"></div>
         </div>
+      </div>
 
-        <!-- Reason for Visit -->
-        <div>
-          <label for="reason" class="block text-sm font-medium text-gray-700">Reason for Visit <span class="text-red-600">*</span></label>
-          <textarea id="reason" name="reason" rows="3" required
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    placeholder="Please describe your reason for the appointment"></textarea>
-        </div>
+      <!-- Appointment Type -->
+      <div>
+        <label for="type" class="block text-base font-medium text-gray-700 dark:text-gray-300 mb-1">Appointment Type <span class="text-red-600">*</span></label>
+        <select id="type" name="type" required
+                class="mt-1 block w-full pl-3 pr-10 py-3 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400">
+          <option value="" disabled selected>Select appointment type</option>
+          <option value="consultation">Consultation</option>
+          <option value="follow-up">Follow-up</option>
+          <option value="checkup">Regular Checkup</option>
+          <option value="emergency">Emergency</option>
+        </select>
+      </div>
 
-        <!-- Submit Button -->
-        <div class="flex justify-end">
-          <button type="submit"
-                  class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-            <i class="fas fa-calendar-plus mr-2"></i>
-            Book Appointment
-          </button>
+      <!-- Date Selection (Button Grid) -->
+      <div>
+        <label class="block text-base font-medium text-gray-700 dark:text-gray-300 mb-1">Select Date <span class="text-red-600">*</span></label>
+        <div id="available-days" class="mt-2 grid grid-cols-7 gap-2"></div>
+        <input type="hidden" id="selected-date" name="date" required>
+      </div>
+
+      <!-- Time Slot Selection -->
+      <div id="time-selection" class="hidden">
+        <label class="block text-base font-medium text-gray-700 dark:text-gray-300 mb-1">Select Time Slot <span class="text-red-600">*</span></label>
+        <div id="time-slots" class="grid grid-cols-4 gap-2 mt-2"></div>
+        <input type="hidden" id="selected-time" name="selected_time" required>
+        <div id="time-message" class="text-xs text-gray-500 mt-1"></div>
+      </div>
+
+      <!-- Payment Section -->
+      <div id="payment-section" class="hidden">
+        <label class="block text-base font-medium text-gray-700 dark:text-gray-300 mb-1">Payment</label>
+        <div class="flex items-center space-x-4">
+          <span id="appointment-price" class="text-lg font-semibold text-blue-700 dark:text-blue-400">EGP 0.00</span>
         </div>
-      </form>
-    </div>
+      </div>
+
+      <div class="flex justify-end mt-6 pt-4">
+        <button type="submit" id="pay-now-btn" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-semibold rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150">
+          <i class="fas fa-credit-card mr-2"></i> Pay & Book Appointment
+        </button>
+      </div>
+    </form>
   </div>
 </div>
+{% endblock %}
 
 {% block javascript %}
 <script>
@@ -364,6 +371,36 @@
       profileLink.setAttribute('disabled', 'disabled');
     }
   });
+
+  // --- Payment Section Logic ---
+  const doctorsData = {{ doctors|tojson }};
+  const typeSelect = document.getElementById('type');
+  const paymentSection = document.getElementById('payment-section');
+  const priceSpan = document.getElementById('appointment-price');
+  const payNowBtn = document.getElementById('pay-now-btn');
+  let selectedDoctorId = null;
+  let selectedType = null;
+  function updatePriceDisplay() {
+    selectedDoctorId = doctorSelect.value;
+    selectedType = typeSelect.value;
+    if (selectedDoctorId && selectedType) {
+      const doc = doctorsData.find(d => d.id == selectedDoctorId);
+      let price = 0;
+      if (doc && doc.prices && doc.prices[selectedType]) {
+        price = doc.prices[selectedType];
+      }
+      priceSpan.textContent = `EGP ${price.toFixed(2)}`;
+      paymentSection.classList.remove('hidden');
+    } else {
+      paymentSection.classList.add('hidden');
+    }
+  }
+  doctorSelect.addEventListener('change', updatePriceDisplay);
+  typeSelect.addEventListener('change', updatePriceDisplay);
+  payNowBtn.addEventListener('click', function() {
+    if (selectedDoctorId && selectedType) {
+      window.location.href = `/appointments/payment?doctor_id=${selectedDoctorId}&type=${selectedType}`;
+    }
+  });
 </script>
-{% endblock %}
 {% endblock %} 

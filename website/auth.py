@@ -88,6 +88,28 @@ def sign_up():
         role = 'patient'  # Force all sign-ups to be patient
         first_name = request.form.get('firstName')
         last_name = request.form.get('lastName')
+        photo = request.files.get('photo')
+        id_photo = request.files.get('id_photo')
+        # Save photo if uploaded
+        from flask import current_app
+        def save_uploaded_file(file):
+            if file and file.filename:
+                filename = file.filename
+                upload_folder = current_app.config.get('UPLOAD_FOLDER', 'website/static/uploads')
+                import os
+                os.makedirs(upload_folder, exist_ok=True)
+                filepath = os.path.join(upload_folder, filename)
+                base, ext = os.path.splitext(filename)
+                counter = 1
+                while os.path.exists(filepath):
+                    filename = f"{base}_{counter}{ext}"
+                    filepath = os.path.join(upload_folder, filename)
+                    counter += 1
+                file.save(filepath)
+                return filepath.replace('website/', '')  # Store relative path for static serving
+            return None
+        photo_path = save_uploaded_file(photo)
+        id_photo_path = save_uploaded_file(id_photo)
         try:
             result = supabase.auth.sign_up({
                 "email": email,
@@ -101,6 +123,22 @@ def sign_up():
                 }
             })
             if hasattr(result, 'user') and result.user:
+                # Also create local user with photo_path
+                from .models import User
+                from . import db
+                user = User.query.filter_by(email=email).first()
+                if not user:
+                    user = User(
+                        email=email,
+                        password='',
+                        first_name=first_name,
+                        last_name=last_name,
+                        role=role,
+                        photo_path=photo_path,
+                        id_photo_path=id_photo_path
+                    )
+                    db.session.add(user)
+                    db.session.commit()
                 flash('Account created! Please check your email to confirm.', 'success')
                 return redirect(url_for('auth.login'))
             else:
