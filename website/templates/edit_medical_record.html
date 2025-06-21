@@ -42,15 +42,16 @@
                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">{{ record.description }}</textarea>
         </div>
 
-        {% if user.role == 'doctor' %}
         <div>
           <label for="prescription" class="block text-sm font-medium text-gray-700">Prescription (if applicable)</label>
           <textarea name="prescription" id="prescription" rows="3"
-                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">{{ record.prescription }}</textarea>
+                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm
+                           {% if user.role == 'patient' %}bg-gray-100 cursor-not-allowed{% endif %}"
+                    {% if user.role == 'patient' %}readonly{% endif %}>{{ record.prescription }}</textarea>
+          {% if user.role == 'patient' %}
+            <p class="mt-2 text-xs text-gray-500">Only doctors and pharmacists can edit prescriptions.</p>
+          {% endif %}
         </div>
-        {% else %}
-        <input type="hidden" name="prescription" value="{{ record.prescription }}">
-        {% endif %}
 
         <div class="flex justify-end space-x-3">
           {% if user.role == 'patient' %}

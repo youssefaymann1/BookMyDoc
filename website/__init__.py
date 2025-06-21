@@ -27,10 +27,13 @@ def create_app():
     app.config['MAIL_PASSWORD'] = 'sjalamjygtofbrjh'
     app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'png', 'jpg', 'jpeg', 'gif'}
     app.config['UPLOAD_FOLDER'] = 'website/static/uploads'
+    
+    # Initialize extensions with the app
     db.init_app(app)
     mail.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
+    
     login_manager.login_view = 'auth.login'
 
     from .views import views

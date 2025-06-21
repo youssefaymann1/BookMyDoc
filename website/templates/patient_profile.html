@@ -126,6 +126,58 @@
         {% endif %}
       </div>
     </div>
+
+    <!-- Medical History Section -->
+    <div class="bg-white dark:bg-gray-900 shadow-lg rounded-2xl p-6">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Medical History</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-300">Your official medical records from doctors</p>
+        </div>
+      </div>
+      <div class="border-t border-gray-200 mt-4 space-y-6">
+        {% if medical_records %}
+          {% for record in medical_records %}
+            <div class="pt-6 flex justify-between items-start">
+              <div class="flex-grow">
+                <h4 class="text-lg font-bold text-blue-700 dark:text-blue-400">{{ record.title }}</h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                  <span class="font-medium">Date:</span> {{ record.date.strftime('%B %d, %Y') }} | 
+                  <span class="font-medium">Type:</span> {{ record.type }}
+                </p>
+                {% if record.doctor and record.doctor.user %}
+                  <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                    <span class="font-medium">Added by:</span> Dr. {{ record.doctor.user.first_name }} {{ record.doctor.user.last_name }}
+                  </p>
+                {% endif %}
+                <p class="text-gray-800 dark:text-gray-200">{{ record.description }}</p>
+                {% if record.prescription %}
+                  <div class="mt-2 p-3 bg-blue-50 dark:bg-blue-900/50 rounded-lg">
+                    <p class="font-semibold text-blue-800 dark:text-blue-300">Prescription:</p>
+                    <p class="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{{ record.prescription }}</p>
+                  </div>
+                {% endif %}
+                {% if record.file_path %}
+                  <div class="mt-3">
+                    <a href="{{ url_for('static', filename=record.file_path) }}" target="_blank" class="text-blue-600 hover:underline">
+                      View Attached Document
+                    </a>
+                  </div>
+                {% endif %}
+              </div>
+              <div class="flex-shrink-0 ml-4">
+                <a href="{{ url_for('views.edit_medical_record', record_id=record.id) }}" class="text-blue-600 hover:text-blue-900" title="Edit Record">
+                  <i class="fas fa-edit"></i>
+                </a>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-gray-500 text-center py-8">No medical history found.</p>
+        {% endif %}
+      </div>
+    </div>
+
   </div>
 </div>
 

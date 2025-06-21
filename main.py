@@ -1,13 +1,16 @@
 from website import db, create_app
 from website.models import User, UserRole, Patient, Doctor, Pharmacist
 from werkzeug.security import generate_password_hash
-import flask_migrate  # Ensure migration commands are registered
+from flask_migrate import Migrate
 
 app = create_app()
+migrate = Migrate(app, db)
 
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()  # This will only create tables if they don't exist
+        # The following create_all is not needed with migrations, 
+        # but leaving it doesn't harm anything for now.
+        db.create_all()
         # Create admin user if not exists
         admin_email = 'admin@gmail.com'
         admin_password = 'admin123'

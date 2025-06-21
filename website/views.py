@@ -452,11 +452,22 @@ def add_medical_record(patient_id):
 def edit_medical_record(record_id):
     record = MedicalRecord.query.get_or_404(record_id)
     
-    # Check if user has permission to edit (doctor who created it or pharmacist)
-    if not (
-        (session['user']['role'] == 'doctor' and record.doctor and record.doctor.user.id == session['user']['id']) or
-        (session['user']['role'] == 'pharmacist')
-    ):
+    # Check if user has permission to edit
+    user_role = session['user']['role']
+    user_id = session['user']['id']
+    
+    can_edit = False
+    # The doctor who created the record can edit it
+    if user_role == 'doctor' and record.doctor and record.doctor.user.id == user_id:
+        can_edit = True
+    # Any pharmacist can edit it
+    elif user_role == 'pharmacist':
+        can_edit = True
+    # The patient who owns the record can also edit it
+    elif user_role == 'patient' and record.patient and record.patient.user_id == user_id:
+        can_edit = True
+
+    if not can_edit:
         flash('You do not have permission to edit this record.', 'error')
         return redirect(url_for('views.home'))
 
@@ -464,11 +475,19 @@ def edit_medical_record(record_id):
         record.title = request.form.get('title')
         record.type = request.form.get('type')
         record.description = request.form.get('description')
-        record.prescription = request.form.get('prescription')
+        
+        # Only doctors and pharmacists can edit the prescription field
+        if user_role == 'doctor' or user_role == 'pharmacist':
+            record.prescription = request.form.get('prescription')
         
         db.session.commit()
         flash('Medical record updated successfully!', 'success')
-        return redirect(url_for('views.view_medical_data', patient_id=record.patient_id))
+
+        # Redirect based on role
+        if user_role == 'patient':
+            return redirect(url_for('views.view_profile'))
+        else:
+            return redirect(url_for('views.view_medical_data', patient_id=record.patient_id))
 
     return render_template("edit_medical_record.html", record=record, user=session.get('user'))
 
@@ -1119,7 +1138,36 @@ def appointment_payment():
             )
             db.session.add(appointment)
             db.session.commit()
-            flash('Payment successful! Appointment booked and doctor notified.', 'success')
+
+            # Send confirmation email to patient
+            patient_msg = Message(
+                'Appointment Confirmation - BookMyDoc',
+                sender='bookmydoc11@gmail.com',
+                recipients=[patient.user.email]
+            )
+            patient_msg.html = render_template(
+                'email/appointment_confirmation_patient.html',
+                patient=patient,
+                doctor=doctor,
+                appointment_time=appointment_datetime
+            )
+            mail.send(patient_msg)
+
+            # Send notification email to doctor
+            doctor_msg = Message(
+                'New Appointment Booked - BookMyDoc',
+                sender='bookmydoc11@gmail.com',
+                recipients=[doctor.user.email]
+            )
+            doctor_msg.html = render_template(
+                'email/appointment_notification_doctor.html',
+                patient=patient,
+                doctor=doctor,
+                appointment_time=appointment_datetime
+            )
+            mail.send(doctor_msg)
+
+            flash('Payment successful! Appointment booked and a confirmation email has been sent.', 'success')
             return redirect(url_for('views.view_appointments'))
         except Exception as e:
             db.session.rollback()

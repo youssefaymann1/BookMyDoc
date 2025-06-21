@@ -64,7 +64,11 @@
             {% for doctor in doctors %}
             <div class="py-4 flex items-center justify-between">
               <div>
+                {% if doctor.user %}
                 <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ doctor.user.first_name }} {{ doctor.user.last_name }}</p>
+                {% else %}
+                <p class="text-base font-medium text-gray-500 dark:text-gray-400 italic">User data not available</p>
+                {% endif %}
                 <p class="text-sm text-gray-500 dark:text-gray-400">{{ doctor.specialty }}</p>
                 {% if doctor.clinic_address %}
                 <p class="text-sm text-gray-500 dark:text-gray-400"><i class="fas fa-map-marker-alt mr-1"></i> {{ doctor.clinic_address }}</p>
@@ -97,8 +101,12 @@
             {% for patient in patients %}
             <div class="py-4 flex items-center justify-between">
               <div>
+                {% if patient.user %}
                 <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ patient.user.first_name }} {{ patient.user.last_name }}</p>
                 <p class="text-sm text-gray-500 dark:text-gray-400">{{ patient.user.email }}</p>
+                {% else %}
+                <p class="text-base font-medium text-gray-500 dark:text-gray-400 italic">User data not available</p>
+                {% endif %}
               </div>
               {% if user and user.role == 'admin' %}
               <form action="{{ url_for('views.delete_patient', patient_id=patient.id) }}" method="POST" style="display:inline;">
@@ -118,8 +126,12 @@
             {% for pharmacist in pharmacists %}
             <div class="py-4 flex items-center justify-between">
               <div>
+                {% if pharmacist.user %}
                 <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ pharmacist.user.first_name }} {{ pharmacist.user.last_name }}</p>
                 <p class="text-sm text-gray-500 dark:text-gray-400">{{ pharmacist.user.email }}</p>
+                {% else %}
+                <p class="text-base font-medium text-gray-500 dark:text-gray-400 italic">User data not available</p>
+                {% endif %}
               </div>
               {% if user and user.role == 'admin' %}
               <form action="{{ url_for('views.delete_pharmacist', pharmacist_id=pharmacist.id) }}" method="POST" style="display:inline;">
